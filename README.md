@@ -28,7 +28,8 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 
 - `GET /healthz`
 - `GET /info`
-- `POST /query` — simple RAG v0 retrieval with sources
+- `POST /query` — structured RAG response (`summary`, `evidence`, `recommended_actions`, `sources`)
+- `POST /reindex` — reload markdown documents without restarting the app
 
 ## Query example
 
@@ -36,4 +37,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 curl -X POST http://localhost:8080/query \
 	-H "Content-Type: application/json" \
 	-d '{"question":"How to troubleshoot CrashLoopBackOff?","top_k":3}'
+```
+
+## Reindex example
+
+```bash
+curl -X POST http://localhost:8080/reindex
 ```

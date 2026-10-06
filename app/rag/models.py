@@ -28,5 +28,7 @@ class RetrievalItem:
 
 @dataclass(frozen=True)
 class QueryResult:
-    answer: str
+    summary: str
+    evidence: list[str]
+    recommended_actions: list[str]
     sources: list[RetrievalItem]

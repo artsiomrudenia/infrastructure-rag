@@ -12,7 +12,9 @@ def test_query_returns_sources() -> None:
     )
     assert response.status_code == 200
     data = response.json()
-    assert "Possible relevant sources" in data["answer"]
+    assert "Most relevant runbook" in data["summary"]
+    assert len(data["evidence"]) > 0
+    assert len(data["recommended_actions"]) > 0
     assert len(data["sources"]) > 0
 
 
@@ -57,4 +59,12 @@ def test_query_no_results() -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["sources"] == []
-    assert "No relevant information" in data["answer"]
+    assert "No relevant information" in data["summary"]
+
+
+def test_reindex_endpoint() -> None:
+    response = client.post("/reindex")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["indexed_documents"] >= 1
+    assert payload["indexed_chunks"] >= payload["indexed_documents"]
