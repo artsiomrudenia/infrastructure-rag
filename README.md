@@ -23,3 +23,17 @@ pip install -r requirements.txt
 pytest -q
 uvicorn app.main:app --host 0.0.0.0 --port 8080
 ```
+
+## API
+
+- `GET /healthz`
+- `GET /info`
+- `POST /query` — simple RAG v0 retrieval with sources
+
+## Query example
+
+```bash
+curl -X POST http://localhost:8080/query \
+	-H "Content-Type: application/json" \
+	-d '{"question":"How to troubleshoot CrashLoopBackOff?","top_k":3}'
+```
