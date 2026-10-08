@@ -49,6 +49,27 @@ Notes:
 - If you need another port: `pwsh -File .\scripts\run-api.ps1 -Port 8090`, `pwsh -File .\scripts\smoke-local.ps1 -BaseUrl http://127.0.0.1:8090`, `pwsh -File .\scripts\query-sample.ps1 -BaseUrl http://127.0.0.1:8090`.
 - Custom question example: `pwsh -File .\scripts\query-sample.ps1 -Question "error rate after deployment and rollback" -TopK 3`.
 
+## Use Obsidian Vault as Source
+
+You can index your `brain2nd` vault directly.
+
+```powershell
+# Terminal 1: run API with external docs source
+pwsh -File .\scripts\run-api.ps1 `
+	-DocsDir "C:\Obsidian\brain2nd" `
+	-IncludeFolders "3. Permanent Notes,4. Projects/RAG" `
+	-ExcludeFolders ".git,.obsidian,attachments,draw.io"
+
+# Terminal 2: reindex + query
+Invoke-RestMethod -NoProxy -Method Post -Uri "http://127.0.0.1:8080/reindex" | ConvertTo-Json -Depth 5
+pwsh -File .\scripts\query-sample.ps1 -Question "What is current RAG project status?" -TopK 5
+```
+
+Environment variables supported by app startup:
+- `RAG_DOCS_DIR`
+- `RAG_INCLUDE_FOLDERS` (comma-separated relative paths)
+- `RAG_EXCLUDE_FOLDERS` (comma-separated relative paths)
+
 ## API
 
 - `GET /healthz`

@@ -1,4 +1,12 @@
+import os
+from pathlib import Path
+
 from fastapi.testclient import TestClient
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+os.environ["RAG_DOCS_DIR"] = str(PROJECT_ROOT / "sample_docs")
+os.environ["RAG_INCLUDE_FOLDERS"] = ""
+os.environ["RAG_EXCLUDE_FOLDERS"] = ""
 
 from app.main import app
 

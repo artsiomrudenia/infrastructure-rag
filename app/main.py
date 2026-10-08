@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -27,8 +28,30 @@ class QueryResponse(BaseModel):
 
 app = FastAPI(title="infrastructure-rag", version="0.2.0")
 
-_docs_dir = Path(__file__).resolve().parents[1] / "sample_docs"
-_rag = RAGService.from_docs_directory(_docs_dir)
+
+def _read_env_list(name: str) -> list[str]:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _resolve_docs_dir() -> Path:
+    raw = os.getenv("RAG_DOCS_DIR", "").strip()
+    if not raw:
+        return Path(__file__).resolve().parents[1] / "sample_docs"
+    return Path(raw).expanduser().resolve()
+
+
+_docs_dir = _resolve_docs_dir()
+_include_folders = _read_env_list("RAG_INCLUDE_FOLDERS")
+_exclude_folders = _read_env_list("RAG_EXCLUDE_FOLDERS")
+
+_rag = RAGService.from_docs_directory(
+    _docs_dir,
+    include_folders=_include_folders,
+    exclude_folders=_exclude_folders,
+)
 
 
 class ReindexResponse(BaseModel):
@@ -47,6 +70,9 @@ def info() -> dict:
         "project": "infrastructure-rag",
         "description": "Retrieval-augmented assistant for infrastructure runbooks",
         "domain": "infrastructure",
+        "docs_dir": str(_docs_dir),
+        "include_folders": _include_folders,
+        "exclude_folders": _exclude_folders,
         "indexed_documents": _rag.document_count,
         "indexed_chunks": _rag.chunk_count,
     }

@@ -29,6 +29,9 @@ STOP_WORDS = {
     "with",
     "what",
     "why",
+    "current",
+    "next",
+    "step",
 }
 
 
@@ -66,6 +69,8 @@ def _tokenize(text: str) -> list[str]:
 def _score_chunk(chunk: Chunk, query_counts: Counter[str]) -> float:
     chunk_tokens = _tokenize(chunk.text)
     chunk_counts = Counter(chunk_tokens)
+    title_counts = Counter(_tokenize(chunk.title))
+    path_counts = Counter(_tokenize(chunk.path))
 
     score = 0.0
     for token, query_count in query_counts.items():
@@ -73,7 +78,18 @@ def _score_chunk(chunk: Chunk, query_counts: Counter[str]) -> float:
             score += min(chunk_counts[token], query_count)
 
     tags_bonus = sum(1 for token in query_counts if token in chunk.tags)
-    return score + (tags_bonus * 0.25)
+    title_bonus = sum(
+        min(title_counts[token], query_count)
+        for token, query_count in query_counts.items()
+        if token in title_counts
+    )
+    path_bonus = sum(
+        min(path_counts[token], query_count)
+        for token, query_count in query_counts.items()
+        if token in path_counts
+    )
+
+    return score + (tags_bonus * 0.25) + (title_bonus * 0.5) + (path_bonus * 0.5)
 
 
 def _snippet(text: str, limit: int = 220) -> str:

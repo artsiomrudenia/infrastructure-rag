@@ -3,14 +3,25 @@ import re
 
 from app.rag.chunking import split_documents_into_chunks
 from app.rag.ingest import read_markdown_documents
-from app.rag.models import QueryResult
+from app.rag.models import QueryResult, RetrievalItem
 from app.rag.retrieval import search_chunks
 
 
 class RAGService:
-    def __init__(self, docs_dir: Path) -> None:
+    def __init__(
+        self,
+        docs_dir: Path,
+        include_folders: list[str] | None = None,
+        exclude_folders: list[str] | None = None,
+    ) -> None:
         self.docs_dir = docs_dir
-        self._documents = read_markdown_documents(docs_dir)
+        self.include_folders = include_folders or []
+        self.exclude_folders = exclude_folders or []
+        self._documents = read_markdown_documents(
+            docs_dir,
+            include_folders=self.include_folders,
+            exclude_folders=self.exclude_folders,
+        )
         self._chunks = split_documents_into_chunks(self._documents)
 
     @property
@@ -22,15 +33,26 @@ class RAGService:
         return len(self._chunks)
 
     @classmethod
-    def from_docs_directory(cls, docs_dir: Path) -> "RAGService":
-        return cls(docs_dir)
+    def from_docs_directory(
+        cls,
+        docs_dir: Path,
+        include_folders: list[str] | None = None,
+        exclude_folders: list[str] | None = None,
+    ) -> "RAGService":
+        return cls(docs_dir, include_folders=include_folders, exclude_folders=exclude_folders)
 
     def reindex(self) -> None:
-        self._documents = read_markdown_documents(self.docs_dir)
+        self._documents = read_markdown_documents(
+            self.docs_dir,
+            include_folders=self.include_folders,
+            exclude_folders=self.exclude_folders,
+        )
         self._chunks = split_documents_into_chunks(self._documents)
 
     def query(self, question: str, top_k: int = 3) -> QueryResult:
-        matches = search_chunks(self._chunks, question, top_k)
+        candidate_limit = max(top_k * 5, top_k)
+        raw_matches = search_chunks(self._chunks, question, candidate_limit)
+        matches = self._deduplicate_by_path(raw_matches, top_k)
         if not matches:
             return QueryResult(
                 summary="No relevant information found in indexed documents.",
@@ -54,6 +76,22 @@ class RAGService:
             recommended_actions=recommended_actions,
             sources=matches,
         )
+
+    def _deduplicate_by_path(
+        self, items: list[RetrievalItem], limit: int
+    ) -> list[RetrievalItem]:
+        unique_items: list[RetrievalItem] = []
+        seen_paths: set[str] = set()
+
+        for item in items:
+            if item.path in seen_paths:
+                continue
+            seen_paths.add(item.path)
+            unique_items.append(item)
+            if len(unique_items) >= limit:
+                break
+
+        return unique_items
 
     def _build_summary(self, matches: list) -> str:
         top = matches[0]
