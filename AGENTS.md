@@ -34,7 +34,7 @@ All commands run from the **repo root** (`infrastructure-rag/`). Prerequisite: a
 Safe to run automatically (verified locally on Windows):
 
 ```powershell
-# Unit + API tests (no network, no server needed). Expected: "9 passed" today.
+# Unit + API tests (no network, no server needed).
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
@@ -47,6 +47,33 @@ Safe but starts a local server on `127.0.0.1:8080` (stop it afterwards):
 ```powershell
 pwsh -File .\scripts\dev-check.ps1 -IncludeQuery   # tests + start API + smoke + sample query, then stops API
 ```
+
+Manual check against the personal Obsidian vault (two terminals; keep the API terminal open):
+
+```powershell
+# Terminal 1, from repo root
+pwsh -File .\scripts\run-api.ps1 `
+	-DocsDir "C:\Obsidian\brain2nd" `
+	-IncludeFolders "3. Permanent Notes,4. Projects/RAG" `
+	-ExcludeFolders ".git,.obsidian,attachments,draw.io"
+
+# Terminal 2: use -NoProxy for every localhost request on this corporate network
+Invoke-RestMethod -NoProxy -Method Get -Uri "http://127.0.0.1:8080/healthz" | ConvertTo-Json
+Invoke-RestMethod -NoProxy -Method Get -Uri "http://127.0.0.1:8080/info" | ConvertTo-Json -Depth 6
+Invoke-RestMethod -NoProxy -Method Post -Uri "http://127.0.0.1:8080/reindex" | ConvertTo-Json -Depth 5
+
+$r = Invoke-RestMethod -NoProxy -Method Post -Uri "http://127.0.0.1:8080/query" `
+	-ContentType "application/json" `
+	-Body '{"question":"What is current RAG project status and next step?","top_k":5}'
+$r | ConvertTo-Json -Depth 8
+$r.sources.path
+$duplicates = $r.sources.path | Group-Object | Where-Object { $_.Count -gt 1 }
+if ($duplicates) { $duplicates } else { "No duplicate source paths" }
+```
+
+Expected checks: `/healthz` returns `status=ok`; `/info` shows the configured docs directory and folder filters; `/reindex` returns positive document/chunk counts. Counts vary as the vault changes. The RAG-status query should rank the RAG project notes above unrelated notes; with `top_k=5`, a lower-ranked unrelated result is possible because retrieval is lexical. No duplicate `sources.path` values should be returned.
+
+Stop a manually started API with `Ctrl+C` in its terminal. `dev-check.ps1` starts a separate local API process and stops that process when the script finishes.
 
 No linter or formatter is configured in this repo. Do not invent one; say so if asked to lint.
 
@@ -73,11 +100,14 @@ No linter or formatter is configured in this repo. Do not invent one; say so if 
 - **`run-tests.ps1` hides test failures in its exit code.** It calls pytest as the last statement without `exit $LASTEXITCODE`, so `pwsh -File .\scripts\run-tests.ps1` exits `0` even when pytest exits non-zero. Consequence: `dev-check.ps1` keeps going after failing tests. Read the pytest summary line, or call `.\.venv\Scripts\python.exe -m pytest -q` directly and check `$LASTEXITCODE`.
 - **Corporate proxy breaks localhost calls.** `HTTP_PROXY`/`HTTPS_PROXY` are set on this machine; `Invoke-RestMethod http://127.0.0.1:<port>/healthz` without `-NoProxy` returns `502 (cannotconnect)`. Use `-NoProxy` (as the scripts do) or `curl --noproxy '*'`.
 - **The index is built at import time of `app.main`.** `RAG_DOCS_DIR`, `RAG_INCLUDE_FOLDERS`, `RAG_EXCLUDE_FOLDERS` are read once on import. Tests set these env vars *before* `from app.main import app`; keep that order in new API tests. Editing docs while the server runs requires `POST /reindex`.
+- **Vault folder filters use relative paths.** `RAG_INCLUDE_FOLDERS` and `RAG_EXCLUDE_FOLDERS` are comma-separated paths relative to `RAG_DOCS_DIR`; matching is case-insensitive and includes a folder plus its descendants. Restart the API to change environment configuration; use `POST /reindex` only to reload files with the existing configuration.
 - **The Docker image contains no documents.** [Dockerfile](Dockerfile) copies only `app/`, so the default docs dir `/app/sample_docs` does not exist and the service starts with 0 documents (`rglob` on a missing dir returns nothing, no error). Helm/manifests mount no docs either. Queries return "No relevant information" until docs are provided.
 - **`sample_docs/` are test fixtures.** [tests/test_rag_query.py](tests/test_rag_query.py) asserts specific queries hit specific files (e.g. `kubernetes-troubleshooting`, `gitlab-pipeline-failure`, `prometheus-alerts`). Editing those docs, `STOP_WORDS`, scoring weights, or tokenization can silently change rankings — run the tests.
+- **Lexical score is heuristic, not confidence.** It counts matching tokens in chunk text and adds smaller bonuses for matches in title/path and tags. `current`, `next`, and `step` are stop words; tokens shorter than 3 characters are dropped. Do not interpret the displayed score as a probability or calibrated confidence.
+- **Retrieval deduplicates by document path.** `RAGService.query` retrieves up to `top_k * 5` chunk candidates, then returns at most one highest-ranked chunk per path. If fewer than `top_k` unique paths occur in that candidate pool, fewer sources are returned.
+- **Recommended actions have a generic fallback.** The top document is parsed for numbered entries under `## Checks` and the line following `## Typical fix`; if neither yields actions, the API returns generic default actions. Project/status notes usually trigger this fallback, so those actions are not evidence-based recommendations.
 - **Tag parsing is currently broken.** `_extract_tags` in [ingest.py](app/rag/ingest.py) takes the first line starting with `#` and containing a space — that is the `# Title` line, so every sample doc gets `tags == ['']` and the tag bonus in `_score_chunk` never applies. Treat a fix as a behavior change (rankings may shift): do it only when asked, add a test, and run the suite.
-- **Tokens shorter than 3 chars are dropped** and `STOP_WORDS` includes `current`, `next`, `step`. Queries made only of such words return no results by design.
-- `top_k` is validated to `1..10` in [app/main.py](app/main.py); `RAGService.query` fetches `top_k * 5` candidates before deduplicating by path.
+- `top_k` is validated to `1..10` in [app/main.py](app/main.py).
 
 ## Keeping this file current
 
