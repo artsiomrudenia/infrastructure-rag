@@ -51,6 +51,10 @@ _rag = RAGService.from_docs_directory(
     _docs_dir,
     include_folders=_include_folders,
     exclude_folders=_exclude_folders,
+    retriever=os.getenv("RAG_RETRIEVER", "overlap"),
+    bm25_k1=float(os.getenv("RAG_BM25_K1", "1.5")),
+    bm25_b=float(os.getenv("RAG_BM25_B", "0.75")),
+    candidate_multiplier=int(os.getenv("RAG_CANDIDATE_MULTIPLIER", "5")),
 )
 
 

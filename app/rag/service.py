@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 
+from app.rag.bm25 import BM25Index
 from app.rag.chunking import split_documents_into_chunks
 from app.rag.ingest import read_markdown_documents
 from app.rag.models import QueryResult, RetrievalItem
@@ -13,16 +14,23 @@ class RAGService:
         docs_dir: Path,
         include_folders: list[str] | None = None,
         exclude_folders: list[str] | None = None,
+        retriever: str = "overlap",
+        bm25_k1: float = 1.5,
+        bm25_b: float = 0.75,
+        candidate_multiplier: int = 5,
     ) -> None:
+        if retriever not in {"overlap", "bm25"}:
+            raise ValueError(f"Unknown retriever: {retriever}")
+        if candidate_multiplier < 1:
+            raise ValueError("candidate_multiplier must be positive")
         self.docs_dir = docs_dir
+        self.retriever = retriever
+        self.bm25_k1 = bm25_k1
+        self.bm25_b = bm25_b
+        self.candidate_multiplier = candidate_multiplier
         self.include_folders = include_folders or []
         self.exclude_folders = exclude_folders or []
-        self._documents = read_markdown_documents(
-            docs_dir,
-            include_folders=self.include_folders,
-            exclude_folders=self.exclude_folders,
-        )
-        self._chunks = split_documents_into_chunks(self._documents)
+        self.reindex()
 
     @property
     def document_count(self) -> int:
@@ -38,21 +46,45 @@ class RAGService:
         docs_dir: Path,
         include_folders: list[str] | None = None,
         exclude_folders: list[str] | None = None,
+        retriever: str = "overlap",
+        bm25_k1: float = 1.5,
+        bm25_b: float = 0.75,
+        candidate_multiplier: int = 5,
     ) -> "RAGService":
-        return cls(docs_dir, include_folders=include_folders, exclude_folders=exclude_folders)
+        return cls(
+            docs_dir, include_folders=include_folders,
+            exclude_folders=exclude_folders, retriever=retriever,
+            bm25_k1=bm25_k1, bm25_b=bm25_b,
+            candidate_multiplier=candidate_multiplier,
+        )
 
     def reindex(self) -> None:
-        self._documents = read_markdown_documents(
+        documents = read_markdown_documents(
             self.docs_dir,
             include_folders=self.include_folders,
             exclude_folders=self.exclude_folders,
         )
-        self._chunks = split_documents_into_chunks(self._documents)
+        chunks = split_documents_into_chunks(documents)
+        bm25 = (
+            BM25Index(chunks, k1=self.bm25_k1, b=self.bm25_b)
+            if self.retriever == "bm25" else None
+        )
+        self._documents = documents
+        self._chunks = chunks
+        self._bm25 = bm25
+
+    def retrieve(self, question: str, top_k: int = 3) -> list[RetrievalItem]:
+        if top_k < 1:
+            raise ValueError("top_k must be positive")
+        candidate_limit = top_k * self.candidate_multiplier
+        if self._bm25 is not None:
+            raw_matches = self._bm25.search(question, candidate_limit)
+        else:
+            raw_matches = search_chunks(self._chunks, question, candidate_limit)
+        return self._deduplicate_by_path(raw_matches, top_k)
 
     def query(self, question: str, top_k: int = 3) -> QueryResult:
-        candidate_limit = max(top_k * 5, top_k)
-        raw_matches = search_chunks(self._chunks, question, candidate_limit)
-        matches = self._deduplicate_by_path(raw_matches, top_k)
+        matches = self.retrieve(question, top_k)
         if not matches:
             return QueryResult(
                 summary="No relevant information found in indexed documents.",

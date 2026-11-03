@@ -5,16 +5,19 @@ Guidance for AI coding agents working in this repository. Humans: see [README.md
 ## What this is
 
 A small FastAPI service that answers infrastructure questions from markdown runbooks.
-Retrieval is **lexical token-overlap scoring** (no embeddings, no LLM, no vector DB) over an **in-memory** index built at startup.
-[docs/architecture.md](docs/architecture.md) shows a "Vector Store" — that is target architecture, not current code.
+Retrieval is **lexical**, using the default token-overlap baseline or opt-in BM25 (`RAG_RETRIEVER=bm25`), over an **in-memory** index built at startup.
+There are no embeddings, LLM, or vector DB. See [docs/architecture.md](docs/architecture.md).
 
 ## Where to start
 
 | Task | Look here first |
 |------|-----------------|
+| Domain vocabulary and canonical terms | [GLOSSARY.md](GLOSSARY.md) |
 | HTTP API, request/response models, env config | [app/main.py](app/main.py) |
 | Query flow, dedup by path, summary, recommended actions | [app/rag/service.py](app/rag/service.py) |
 | Scoring, tokenizer, `STOP_WORDS` | [app/rag/retrieval.py](app/rag/retrieval.py) |
+| BM25 statistics and short-term/identifier tokenization | [app/rag/bm25.py](app/rag/bm25.py) |
+| Ranking evaluation, dataset labels, dev/test selection | [evaluation/README.md](evaluation/README.md), [app/rag/evaluate.py](app/rag/evaluate.py) |
 | Markdown loading, title/tag parsing (tags: see gotchas), include/exclude folders | [app/rag/ingest.py](app/rag/ingest.py) |
 | Chunking | [app/rag/chunking.py](app/rag/chunking.py) |
 | Data classes (`Document`, `Chunk`, `RetrievalItem`, `QueryResult`) | [app/rag/models.py](app/rag/models.py) |
@@ -99,11 +102,11 @@ No linter or formatter is configured in this repo. Do not invent one; say so if 
 
 - **`run-tests.ps1` hides test failures in its exit code.** It calls pytest as the last statement without `exit $LASTEXITCODE`, so `pwsh -File .\scripts\run-tests.ps1` exits `0` even when pytest exits non-zero. Consequence: `dev-check.ps1` keeps going after failing tests. Read the pytest summary line, or call `.\.venv\Scripts\python.exe -m pytest -q` directly and check `$LASTEXITCODE`.
 - **Corporate proxy breaks localhost calls.** `HTTP_PROXY`/`HTTPS_PROXY` are set on this machine; `Invoke-RestMethod http://127.0.0.1:<port>/healthz` without `-NoProxy` returns `502 (cannotconnect)`. Use `-NoProxy` (as the scripts do) or `curl --noproxy '*'`.
-- **The index is built at import time of `app.main`.** `RAG_DOCS_DIR`, `RAG_INCLUDE_FOLDERS`, `RAG_EXCLUDE_FOLDERS` are read once on import. Tests set these env vars *before* `from app.main import app`; keep that order in new API tests. Editing docs while the server runs requires `POST /reindex`.
+- **The index is built at import time of `app.main`.** Document filters and retriever settings (`RAG_RETRIEVER`, `RAG_BM25_K1`, `RAG_BM25_B`, `RAG_CANDIDATE_MULTIPLIER`) are read once on import. Tests set these env vars *before* `from app.main import app`; keep that order in new API tests. Editing docs while the server runs requires `POST /reindex`.
 - **Vault folder filters use relative paths.** `RAG_INCLUDE_FOLDERS` and `RAG_EXCLUDE_FOLDERS` are comma-separated paths relative to `RAG_DOCS_DIR`; matching is case-insensitive and includes a folder plus its descendants. Restart the API to change environment configuration; use `POST /reindex` only to reload files with the existing configuration.
 - **The Docker image contains no documents.** [Dockerfile](Dockerfile) copies only `app/`, so the default docs dir `/app/sample_docs` does not exist and the service starts with 0 documents (`rglob` on a missing dir returns nothing, no error). Helm/manifests mount no docs either. Queries return "No relevant information" until docs are provided.
 - **`sample_docs/` are test fixtures.** [tests/test_rag_query.py](tests/test_rag_query.py) asserts specific queries hit specific files (e.g. `kubernetes-troubleshooting`, `gitlab-pipeline-failure`, `prometheus-alerts`). Editing those docs, `STOP_WORDS`, scoring weights, or tokenization can silently change rankings — run the tests.
-- **Lexical score is heuristic, not confidence.** It counts matching tokens in chunk text and adds smaller bonuses for matches in title/path and tags. `current`, `next`, and `step` are stop words; tokens shorter than 3 characters are dropped. Do not interpret the displayed score as a probability or calibrated confidence.
+- **Retrieval score is not confidence.** The baseline counts matching tokens and adds metadata bonuses; BM25 uses term rarity, saturation, and length normalization. Neither establishes that the corpus answers a question. The baseline drops tokens shorter than three characters; BM25 retains short terms.
 - **Retrieval deduplicates by document path.** `RAGService.query` retrieves up to `top_k * 5` chunk candidates, then returns at most one highest-ranked chunk per path. If fewer than `top_k` unique paths occur in that candidate pool, fewer sources are returned.
 - **Recommended actions have a generic fallback.** The top document is parsed for numbered entries under `## Checks` and the line following `## Typical fix`; if neither yields actions, the API returns generic default actions. Project/status notes usually trigger this fallback, so those actions are not evidence-based recommendations.
 - **Tag parsing is currently broken.** `_extract_tags` in [ingest.py](app/rag/ingest.py) takes the first line starting with `#` and containing a space — that is the `# Title` line, so every sample doc gets `tags == ['']` and the tag bonus in `_score_chunk` never applies. Treat a fix as a behavior change (rankings may shift): do it only when asked, add a test, and run the suite.
