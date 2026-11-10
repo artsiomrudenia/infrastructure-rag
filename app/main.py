@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from app.rag.service import RAGService
+from app.rag.semantic import SemanticInputTooLong
 
 
 class QueryRequest(BaseModel):
@@ -46,6 +47,7 @@ def _resolve_docs_dir() -> Path:
 _docs_dir = _resolve_docs_dir()
 _include_folders = _read_env_list("RAG_INCLUDE_FOLDERS")
 _exclude_folders = _read_env_list("RAG_EXCLUDE_FOLDERS")
+_semantic_model_dir = os.getenv("RAG_SEMANTIC_MODEL_DIR", "").strip()
 
 _rag = RAGService.from_docs_directory(
     _docs_dir,
@@ -55,6 +57,7 @@ _rag = RAGService.from_docs_directory(
     bm25_k1=float(os.getenv("RAG_BM25_K1", "1.5")),
     bm25_b=float(os.getenv("RAG_BM25_B", "0.75")),
     candidate_multiplier=int(os.getenv("RAG_CANDIDATE_MULTIPLIER", "5")),
+    semantic_model_dir=Path(_semantic_model_dir).expanduser() if _semantic_model_dir else None,
 )
 
 
@@ -84,7 +87,10 @@ def info() -> dict:
 
 @app.post("/query", response_model=QueryResponse)
 def query(payload: QueryRequest) -> QueryResponse:
-    result = _rag.query(payload.question, payload.top_k)
+    try:
+        result = _rag.query(payload.question, payload.top_k)
+    except SemanticInputTooLong as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     sources = [
         SourceItem(
             path=item.path,

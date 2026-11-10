@@ -1,0 +1,1811 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "k": 3,
+  "repeats": 5,
+  "corpus_sha256": "55fcc4f04450dd7c8c8500866103fcc34039a4c22e9939e927956e20d8bec3d9",
+  "dataset_sha256": "88e7d605606e6d981d8a7229d5a8eb02627715999314430852671065f24b51fe",
+  "config": {
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    "candidate_multiplier": 5,
+    "chunk_size": 700,
+    "chunk_overlap": 120,
+    "semantic_model_dir": "C:\\Users\\A81348085\\AppData\\Local\\infrastructure-rag\\models\\multilingual-e5-small-614241f",
+    "semantic_query_prefix": "query: ",
+    "semantic_passage_prefix": "passage: ",
+    "semantic_device": "cpu",
+    "semantic_threads": 4,
+    "hybrid_rrf_c": 60,
+    "hybrid_weights": [
+      1,
+      1
+    ],
+    "hybrid_fusion_unit": "chunk",
+    "hybrid_branch_depth": 15
+  },
+  "retrievers": {
+    "overlap": {
+      "index_ms": 3.5583000026235823,
+      "overall": {
+        "query_count": 16,
+        "answerable_count": 12,
+        "unanswerable_count": 4,
+        "ranking": {
+          "recall_at_k": 0.75,
+          "precision_at_k": 0.2777777777777778,
+          "mrr_at_k": 0.75,
+          "map_at_k": 0.7361111111111112
+        },
+        "no_answer": {
+          "false_positive_rate": 0.5,
+          "correct_abstention_rate": 0.5
+        },
+        "latency_ms": {
+          "mean": 0.22396000008484407,
+          "p50": 0.18417999963276088,
+          "p95": 0.47037999975145794
+        }
+      },
+      "by_language": {
+        "en": {
+          "query_count": 9,
+          "answerable_count": 7,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 0.8571428571428571,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 0.8571428571428571,
+            "map_at_k": 0.8333333333333334
+          },
+          "no_answer": {
+            "false_positive_rate": 0.5,
+            "correct_abstention_rate": 0.5
+          },
+          "latency_ms": {
+            "mean": 0.21726666657034205,
+            "p50": 0.18417999963276088,
+            "p95": 0.47037999975145794
+          }
+        },
+        "ru": {
+          "query_count": 7,
+          "answerable_count": 5,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 0.6,
+            "precision_at_k": 0.19999999999999998,
+            "mrr_at_k": 0.6,
+            "map_at_k": 0.6
+          },
+          "no_answer": {
+            "false_positive_rate": 0.5,
+            "correct_abstention_rate": 0.5
+          },
+          "latency_ms": {
+            "mean": 0.23256571460348954,
+            "p50": 0.18448000118951313,
+            "p95": 0.3862000005028676
+          }
+        }
+      },
+      "by_group": {
+        "cross_language": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.25832000028458424,
+            "p50": 0.1805400002922397,
+            "p95": 0.33610000027692877
+          }
+        },
+        "identifiers": {
+          "query_count": 6,
+          "answerable_count": 6,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.2635633332829457,
+            "p50": 0.18417999963276088,
+            "p95": 0.47037999975145794
+          }
+        },
+        "multi_relevant": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 0.8333333333333333
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.19637999939732254,
+            "p50": 0.19637999939732254,
+            "p95": 0.19637999939732254
+          }
+        },
+        "no_answer": {
+          "query_count": 4,
+          "answerable_count": 0,
+          "unanswerable_count": 4,
+          "ranking": null,
+          "no_answer": {
+            "false_positive_rate": 0.5,
+            "correct_abstention_rate": 0.5
+          },
+          "latency_ms": {
+            "mean": 0.1804850004191394,
+            "p50": 0.17255999991903082,
+            "p95": 0.19290000054752454
+          }
+        },
+        "paraphrase": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.22854000053484924,
+            "p50": 0.22854000053484924,
+            "p95": 0.22854000053484924
+          }
+        },
+        "short_terms": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 0.5,
+            "precision_at_k": 0.16666666666666666,
+            "mrr_at_k": 0.5,
+            "map_at_k": 0.5
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.1692399997409666,
+            "p50": 0.16671999910613522,
+            "p95": 0.17176000037579797
+          }
+        }
+      },
+      "queries": [
+        {
+          "id": "dev-restart-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.47037999975145794
+        },
+        {
+          "id": "dev-restart-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.3862000005028676
+        },
+        {
+          "id": "dev-restart-paraphrase",
+          "language": "en",
+          "group": "paraphrase",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.22854000053484924
+        },
+        {
+          "id": "dev-restart-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "latency_ms": 0.33610000027692877
+        },
+        {
+          "id": "dev-auth-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.18417999963276088
+        },
+        {
+          "id": "dev-auth-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "release-rollback.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.18941999951493926
+        },
+        {
+          "id": "dev-capacity-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "latency_ms": 0.16671999910613522
+        },
+        {
+          "id": "dev-capacity-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.1786600005289074
+        },
+        {
+          "id": "dev-tls-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.17253999976674095
+        },
+        {
+          "id": "dev-tls-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.17176000037579797
+        },
+        {
+          "id": "dev-tls-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "latency_ms": 0.1805400002922397
+        },
+        {
+          "id": "dev-multiple",
+          "language": "en",
+          "group": "multi_relevant",
+          "relevant_paths": [
+            "registry-auth.md",
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "registry-dns.md",
+            "tls-expiry.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 0.8333333333333333
+          },
+          "latency_ms": 0.19637999939732254
+        },
+        {
+          "id": "dev-unknown-en",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [],
+          "metrics": {},
+          "latency_ms": 0.1720000000204891
+        },
+        {
+          "id": "dev-unknown-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [],
+          "metrics": {},
+          "latency_ms": 0.17255999991903082
+        },
+        {
+          "id": "dev-nearmiss",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "registry-dns.md",
+            "disk-capacity.md"
+          ],
+          "metrics": {},
+          "latency_ms": 0.19290000054752454
+        },
+        {
+          "id": "dev-nearmiss-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "tls-expiry.md"
+          ],
+          "metrics": {},
+          "latency_ms": 0.18448000118951313
+        }
+      ]
+    },
+    "bm25": {
+      "index_ms": 4.88010000117356,
+      "overall": {
+        "query_count": 16,
+        "answerable_count": 12,
+        "unanswerable_count": 4,
+        "ranking": {
+          "recall_at_k": 0.8333333333333334,
+          "precision_at_k": 0.3055555555555555,
+          "mrr_at_k": 0.8333333333333334,
+          "map_at_k": 0.8333333333333334
+        },
+        "no_answer": {
+          "false_positive_rate": 0.5,
+          "correct_abstention_rate": 0.5
+        },
+        "latency_ms": {
+          "mean": 0.011043750009775977,
+          "p50": 0.007979999645613134,
+          "p95": 0.025739998818608
+        }
+      },
+      "by_language": {
+        "en": {
+          "query_count": 9,
+          "answerable_count": 7,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.38095238095238093,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": {
+            "false_positive_rate": 0.5,
+            "correct_abstention_rate": 0.5
+          },
+          "latency_ms": {
+            "mean": 0.012319999950705096,
+            "p50": 0.007979999645613134,
+            "p95": 0.025739998818608
+          }
+        },
+        "ru": {
+          "query_count": 7,
+          "answerable_count": 5,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 0.6,
+            "precision_at_k": 0.19999999999999998,
+            "mrr_at_k": 0.6,
+            "map_at_k": 0.6
+          },
+          "no_answer": {
+            "false_positive_rate": 0.5,
+            "correct_abstention_rate": 0.5
+          },
+          "latency_ms": {
+            "mean": 0.009402857228581394,
+            "p50": 0.00849999996717088,
+            "p95": 0.017839999782154337
+          }
+        }
+      },
+      "by_group": {
+        "cross_language": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.006030000076862052,
+            "p50": 0.005879999662283808,
+            "p95": 0.006180000491440296
+          }
+        },
+        "identifiers": {
+          "query_count": 6,
+          "answerable_count": 6,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.013486666527266303,
+            "p50": 0.00849999996717088,
+            "p95": 0.025739998818608
+          }
+        },
+        "multi_relevant": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.020280000899219885,
+            "p50": 0.020280000899219885,
+            "p95": 0.020280000899219885
+          }
+        },
+        "no_answer": {
+          "query_count": 4,
+          "answerable_count": 0,
+          "unanswerable_count": 4,
+          "ranking": null,
+          "no_answer": {
+            "false_positive_rate": 0.5,
+            "correct_abstention_rate": 0.5
+          },
+          "latency_ms": {
+            "mean": 0.009365000187244732,
+            "p50": 0.0036999990697950125,
+            "p95": 0.020739999308716506
+          }
+        },
+        "paraphrase": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.011639999866019934,
+            "p50": 0.011639999866019934,
+            "p95": 0.011639999866019934
+          }
+        },
+        "short_terms": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 0.007169999662437476,
+            "p50": 0.0063599996792618185,
+            "p95": 0.007979999645613134
+          }
+        }
+      },
+      "queries": [
+        {
+          "id": "dev-restart-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md",
+            "tls-expiry.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.025739998818608
+        },
+        {
+          "id": "dev-restart-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.017839999782154337
+        },
+        {
+          "id": "dev-restart-paraphrase",
+          "language": "en",
+          "group": "paraphrase",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.011639999866019934
+        },
+        {
+          "id": "dev-restart-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "latency_ms": 0.005879999662283808
+        },
+        {
+          "id": "dev-auth-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.006860000576125458
+        },
+        {
+          "id": "dev-auth-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "release-rollback.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.014200000441633165
+        },
+        {
+          "id": "dev-capacity-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.007979999645613134
+        },
+        {
+          "id": "dev-capacity-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.00849999996717088
+        },
+        {
+          "id": "dev-tls-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.007779999577905983
+        },
+        {
+          "id": "dev-tls-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.0063599996792618185
+        },
+        {
+          "id": "dev-tls-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "precision_at_k": 0.0,
+            "mrr_at_k": 0.0,
+            "map_at_k": 0.0
+          },
+          "latency_ms": 0.006180000491440296
+        },
+        {
+          "id": "dev-multiple",
+          "language": "en",
+          "group": "multi_relevant",
+          "relevant_paths": [
+            "registry-auth.md",
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "tls-expiry.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 0.020280000899219885
+        },
+        {
+          "id": "dev-unknown-en",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [],
+          "metrics": {},
+          "latency_ms": 0.0035000011848751456
+        },
+        {
+          "id": "dev-unknown-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [],
+          "metrics": {},
+          "latency_ms": 0.0036999990697950125
+        },
+        {
+          "id": "dev-nearmiss",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "disk-capacity.md",
+            "registry-auth.md",
+            "registry-dns.md"
+          ],
+          "metrics": {},
+          "latency_ms": 0.020739999308716506
+        },
+        {
+          "id": "dev-nearmiss-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "tls-expiry.md"
+          ],
+          "metrics": {},
+          "latency_ms": 0.009520001185592264
+        }
+      ]
+    },
+    "semantic": {
+      "index_ms": 7348.132900002383,
+      "overall": {
+        "query_count": 16,
+        "answerable_count": 12,
+        "unanswerable_count": 4,
+        "ranking": {
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.3611111111111111,
+          "mrr_at_k": 0.9583333333333334,
+          "map_at_k": 0.9583333333333334
+        },
+        "no_answer": {
+          "false_positive_rate": 1,
+          "correct_abstention_rate": 0
+        },
+        "latency_ms": {
+          "mean": 20.25277000002461,
+          "p50": 20.348520000698045,
+          "p95": 24.97111999982735
+        }
+      },
+      "by_language": {
+        "en": {
+          "query_count": 9,
+          "answerable_count": 7,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.38095238095238093,
+            "mrr_at_k": 0.9285714285714286,
+            "map_at_k": 0.9285714285714286
+          },
+          "no_answer": {
+            "false_positive_rate": 1,
+            "correct_abstention_rate": 0
+          },
+          "latency_ms": {
+            "mean": 19.616246666717213,
+            "p50": 20.348520000698045,
+            "p95": 24.009900000237394
+          }
+        },
+        "ru": {
+          "query_count": 7,
+          "answerable_count": 5,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": {
+            "false_positive_rate": 1,
+            "correct_abstention_rate": 0
+          },
+          "latency_ms": {
+            "mean": 21.07115714284841,
+            "p50": 22.671599999739556,
+            "p95": 24.97111999982735
+          }
+        }
+      },
+      "by_group": {
+        "cross_language": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 23.821359999783454,
+            "p50": 22.671599999739556,
+            "p95": 24.97111999982735
+          }
+        },
+        "identifiers": {
+          "query_count": 6,
+          "answerable_count": 6,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 21.556243333179737,
+            "p50": 21.48283999922569,
+            "p95": 24.30584000030649
+          }
+        },
+        "multi_relevant": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 22.78015999982017,
+            "p50": 22.78015999982017,
+            "p95": 22.78015999982017
+          }
+        },
+        "no_answer": {
+          "query_count": 4,
+          "answerable_count": 0,
+          "unanswerable_count": 4,
+          "ranking": null,
+          "no_answer": {
+            "false_positive_rate": 1,
+            "correct_abstention_rate": 0
+          },
+          "latency_ms": {
+            "mean": 16.96411500015529,
+            "p50": 15.96062000025995,
+            "p95": 20.43357999937143
+          }
+        },
+        "paraphrase": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 0.5,
+            "map_at_k": 0.5
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 20.348520000698045,
+            "p50": 20.348520000698045,
+            "p95": 20.348520000698045
+          }
+        },
+        "short_terms": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 18.039500000304542,
+            "p50": 17.337679999764077,
+            "p95": 18.741320000845008
+          }
+        }
+      },
+      "queries": [
+        {
+          "id": "dev-restart-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "registry-dns.md",
+            "registry-auth.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 16.873540000233334
+        },
+        {
+          "id": "dev-restart-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "release-rollback.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 19.626919999427628
+        },
+        {
+          "id": "dev-restart-paraphrase",
+          "language": "en",
+          "group": "paraphrase",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md",
+            "pod-restarts.md",
+            "registry-auth.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 0.5,
+            "map_at_k": 0.5
+          },
+          "latency_ms": 20.348520000698045
+        },
+        {
+          "id": "dev-restart-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md",
+            "disk-capacity.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 24.97111999982735
+        },
+        {
+          "id": "dev-auth-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "registry-dns.md",
+            "release-rollback.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 24.009900000237394
+        },
+        {
+          "id": "dev-auth-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "release-rollback.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 24.30584000030649
+        },
+        {
+          "id": "dev-capacity-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md",
+            "disk-io.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 18.741320000845008
+        },
+        {
+          "id": "dev-capacity-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md",
+            "release-rollback.md",
+            "pod-restarts.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 23.038419999647886
+        },
+        {
+          "id": "dev-tls-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "registry-auth.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 21.48283999922569
+        },
+        {
+          "id": "dev-tls-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "pod-memory.md",
+            "disk-io.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 17.337679999764077
+        },
+        {
+          "id": "dev-tls-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "registry-auth.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 22.671599999739556
+        },
+        {
+          "id": "dev-multiple",
+          "language": "en",
+          "group": "multi_relevant",
+          "relevant_paths": [
+            "registry-auth.md",
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "registry-auth.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 22.78015999982017
+        },
+        {
+          "id": "dev-unknown-en",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "disk-capacity.md",
+            "registry-auth.md"
+          ],
+          "metrics": {},
+          "latency_ms": 14.538680000259774
+        },
+        {
+          "id": "dev-unknown-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "release-rollback.md",
+            "pod-restarts.md",
+            "disk-capacity.md"
+          ],
+          "metrics": {},
+          "latency_ms": 16.92358000073
+        },
+        {
+          "id": "dev-nearmiss",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "registry-dns.md",
+            "disk-capacity.md"
+          ],
+          "metrics": {},
+          "latency_ms": 20.43357999937143
+        },
+        {
+          "id": "dev-nearmiss-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "pod-memory.md",
+            "disk-io.md"
+          ],
+          "metrics": {},
+          "latency_ms": 15.96062000025995
+        }
+      ]
+    },
+    "hybrid": {
+      "index_ms": 1091.3648000023386,
+      "overall": {
+        "query_count": 16,
+        "answerable_count": 12,
+        "unanswerable_count": 4,
+        "ranking": {
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.3611111111111111,
+          "mrr_at_k": 1.0,
+          "map_at_k": 1.0
+        },
+        "no_answer": {
+          "false_positive_rate": 1,
+          "correct_abstention_rate": 0
+        },
+        "latency_ms": {
+          "mean": 17.69529499983946,
+          "p50": 17.0053599998937,
+          "p95": 23.56215999898268
+        }
+      },
+      "by_language": {
+        "en": {
+          "query_count": 9,
+          "answerable_count": 7,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.38095238095238093,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": {
+            "false_positive_rate": 1,
+            "correct_abstention_rate": 0
+          },
+          "latency_ms": {
+            "mean": 17.113662222173943,
+            "p50": 17.0053599998937,
+            "p95": 20.62930000029155
+          }
+        },
+        "ru": {
+          "query_count": 7,
+          "answerable_count": 5,
+          "unanswerable_count": 2,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": {
+            "false_positive_rate": 1,
+            "correct_abstention_rate": 0
+          },
+          "latency_ms": {
+            "mean": 18.443108571123698,
+            "p50": 19.308019999880344,
+            "p95": 23.56215999898268
+          }
+        }
+      },
+      "by_group": {
+        "cross_language": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 22.039119999681134,
+            "p50": 20.51608000037959,
+            "p95": 23.56215999898268
+          }
+        },
+        "identifiers": {
+          "query_count": 6,
+          "answerable_count": 6,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 16.797776666498976,
+            "p50": 15.234999999665888,
+            "p95": 20.19769999969867
+          }
+        },
+        "multi_relevant": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 19.344860001001507,
+            "p50": 19.344860001001507,
+            "p95": 19.344860001001507
+          }
+        },
+        "no_answer": {
+          "query_count": 4,
+          "answerable_count": 0,
+          "unanswerable_count": 4,
+          "ranking": null,
+          "no_answer": {
+            "false_positive_rate": 1,
+            "correct_abstention_rate": 0
+          },
+          "latency_ms": {
+            "mean": 17.352969999956258,
+            "p50": 16.798139999445993,
+            "p95": 19.14188000082504
+          }
+        },
+        "paraphrase": {
+          "query_count": 1,
+          "answerable_count": 1,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 20.62930000029155,
+            "p50": 20.62930000029155,
+            "p95": 20.62930000029155
+          }
+        },
+        "short_terms": {
+          "query_count": 2,
+          "answerable_count": 2,
+          "unanswerable_count": 0,
+          "ranking": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "no_answer": null,
+          "latency_ms": {
+            "mean": 14.436889998978586,
+            "p50": 13.52053999871714,
+            "p95": 15.353239999240031
+          }
+        }
+      },
+      "queries": [
+        {
+          "id": "dev-restart-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "registry-dns.md",
+            "pod-memory.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 15.234999999665888
+        },
+        {
+          "id": "dev-restart-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md",
+            "release-rollback.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 19.308019999880344
+        },
+        {
+          "id": "dev-restart-paraphrase",
+          "language": "en",
+          "group": "paraphrase",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "disk-capacity.md",
+            "registry-auth.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 20.62930000029155
+        },
+        {
+          "id": "dev-restart-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "pod-restarts.md"
+          ],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "pod-memory.md",
+            "disk-capacity.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 23.56215999898268
+        },
+        {
+          "id": "dev-auth-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "registry-dns.md",
+            "release-rollback.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 14.707279999856837
+        },
+        {
+          "id": "dev-auth-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "registry-auth.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "release-rollback.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 20.19769999969867
+        },
+        {
+          "id": "dev-capacity-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md",
+            "disk-io.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 15.353239999240031
+        },
+        {
+          "id": "dev-capacity-ru",
+          "language": "ru",
+          "group": "identifiers",
+          "relevant_paths": [
+            "disk-capacity.md"
+          ],
+          "retrieved_paths": [
+            "disk-capacity.md",
+            "release-rollback.md",
+            "pod-restarts.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 14.333299999998417
+        },
+        {
+          "id": "dev-tls-en",
+          "language": "en",
+          "group": "identifiers",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "registry-auth.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 17.0053599998937
+        },
+        {
+          "id": "dev-tls-short",
+          "language": "en",
+          "group": "short_terms",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "pod-memory.md",
+            "disk-io.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 13.52053999871714
+        },
+        {
+          "id": "dev-tls-cross",
+          "language": "ru",
+          "group": "cross_language",
+          "relevant_paths": [
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "registry-auth.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.3333333333333333,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 20.51608000037959
+        },
+        {
+          "id": "dev-multiple",
+          "language": "en",
+          "group": "multi_relevant",
+          "relevant_paths": [
+            "registry-auth.md",
+            "tls-expiry.md"
+          ],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "tls-expiry.md",
+            "registry-dns.md"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "precision_at_k": 0.6666666666666666,
+            "mrr_at_k": 1.0,
+            "map_at_k": 1.0
+          },
+          "latency_ms": 19.344860001001507
+        },
+        {
+          "id": "dev-unknown-en",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "pod-restarts.md",
+            "disk-capacity.md",
+            "registry-auth.md"
+          ],
+          "metrics": {},
+          "latency_ms": 19.085500000073807
+        },
+        {
+          "id": "dev-unknown-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "release-rollback.md",
+            "pod-restarts.md",
+            "disk-capacity.md"
+          ],
+          "metrics": {},
+          "latency_ms": 14.386359999480192
+        },
+        {
+          "id": "dev-nearmiss",
+          "language": "en",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "registry-auth.md",
+            "disk-capacity.md",
+            "registry-dns.md"
+          ],
+          "metrics": {},
+          "latency_ms": 19.14188000082504
+        },
+        {
+          "id": "dev-nearmiss-ru",
+          "language": "ru",
+          "group": "no_answer",
+          "relevant_paths": [],
+          "retrieved_paths": [
+            "tls-expiry.md",
+            "pod-memory.md",
+            "disk-io.md"
+          ],
+          "metrics": {},
+          "latency_ms": 16.798139999445993
+        }
+      ]
+    }
+  }
+}

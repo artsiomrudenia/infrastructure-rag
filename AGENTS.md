@@ -5,8 +5,8 @@ Guidance for AI coding agents working in this repository. Humans: see [README.md
 ## What this is
 
 A small FastAPI service that answers infrastructure questions from markdown runbooks.
-Retrieval is **lexical**, using the default token-overlap baseline or opt-in BM25 (`RAG_RETRIEVER=bm25`), over an **in-memory** index built at startup.
-There are no embeddings, LLM, or vector DB. See [docs/architecture.md](docs/architecture.md).
+Retrieval uses the default token-overlap baseline, opt-in BM25, local CPU semantic search, or hybrid RRF (`RAG_RETRIEVER=semantic|hybrid`, `RAG_SEMANTIC_MODEL_DIR`) over an **in-memory** index built at startup.
+Semantic/hybrid require separate dependencies/weights; there is no LLM or vector DB. See [docs/architecture.md](docs/architecture.md).
 
 ## Where to start
 
@@ -17,6 +17,8 @@ There are no embeddings, LLM, or vector DB. See [docs/architecture.md](docs/arch
 | Query flow, dedup by path, summary, recommended actions | [app/rag/service.py](app/rag/service.py) |
 | Scoring, tokenizer, `STOP_WORDS` | [app/rag/retrieval.py](app/rag/retrieval.py) |
 | BM25 statistics and short-term/identifier tokenization | [app/rag/bm25.py](app/rag/bm25.py) |
+| Local E5 prefixes, token limits, embeddings and cosine | [app/rag/semantic.py](app/rag/semantic.py) |
+| Hybrid chunk identity, equal-weight RRF, c=60 and ties | [app/rag/hybrid.py](app/rag/hybrid.py) |
 | Ranking evaluation, dataset labels, dev/test selection | [evaluation/README.md](evaluation/README.md), [app/rag/evaluate.py](app/rag/evaluate.py) |
 | Markdown loading, title/tag parsing (tags: see gotchas), include/exclude folders | [app/rag/ingest.py](app/rag/ingest.py) |
 | Chunking | [app/rag/chunking.py](app/rag/chunking.py) |
@@ -44,6 +46,12 @@ Safe to run automatically (verified locally on Windows):
 `pwsh -File .\scripts\run-tests.ps1 -Quiet` runs the same thing, but see the exit-code gotcha below.
 
 Linux/macOS / CI equivalent: `pytest -q` from the repo root with the venv activated.
+
+Semantic unit tests use fake vectors and skip when optional NumPy is absent. For real
+quality checks, use the local model and dev evaluation command in
+[evaluation/README.md](evaluation/README.md#optional-semantic-comparison).
+That opt-in evaluates all four retrievers; use its hybrid section for RRF results.
+Keep downloads explicit and outside the repo; runtime must load weights locally.
 
 Safe but starts a local server on `127.0.0.1:8080` (stop it afterwards):
 
@@ -102,7 +110,7 @@ No linter or formatter is configured in this repo. Do not invent one; say so if 
 
 - **`run-tests.ps1` hides test failures in its exit code.** It calls pytest as the last statement without `exit $LASTEXITCODE`, so `pwsh -File .\scripts\run-tests.ps1` exits `0` even when pytest exits non-zero. Consequence: `dev-check.ps1` keeps going after failing tests. Read the pytest summary line, or call `.\.venv\Scripts\python.exe -m pytest -q` directly and check `$LASTEXITCODE`.
 - **Corporate proxy breaks localhost calls.** `HTTP_PROXY`/`HTTPS_PROXY` are set on this machine; `Invoke-RestMethod http://127.0.0.1:<port>/healthz` without `-NoProxy` returns `502 (cannotconnect)`. Use `-NoProxy` (as the scripts do) or `curl --noproxy '*'`.
-- **The index is built at import time of `app.main`.** Document filters and retriever settings (`RAG_RETRIEVER`, `RAG_BM25_K1`, `RAG_BM25_B`, `RAG_CANDIDATE_MULTIPLIER`) are read once on import. Tests set these env vars *before* `from app.main import app`; keep that order in new API tests. Editing docs while the server runs requires `POST /reindex`.
+- **The index is built at import time of `app.main`.** Document filters and retriever settings (`RAG_RETRIEVER`, `RAG_BM25_K1`, `RAG_BM25_B`, `RAG_CANDIDATE_MULTIPLIER`, `RAG_SEMANTIC_MODEL_DIR`) are read once on import. Tests set these env vars *before* `from app.main import app`; keep that order in new API tests. Editing docs while the server runs requires `POST /reindex`.
 - **Vault folder filters use relative paths.** `RAG_INCLUDE_FOLDERS` and `RAG_EXCLUDE_FOLDERS` are comma-separated paths relative to `RAG_DOCS_DIR`; matching is case-insensitive and includes a folder plus its descendants. Restart the API to change environment configuration; use `POST /reindex` only to reload files with the existing configuration.
 - **The Docker image contains no documents.** [Dockerfile](Dockerfile) copies only `app/`, so the default docs dir `/app/sample_docs` does not exist and the service starts with 0 documents (`rglob` on a missing dir returns nothing, no error). Helm/manifests mount no docs either. Queries return "No relevant information" until docs are provided.
 - **`sample_docs/` are test fixtures.** [tests/test_rag_query.py](tests/test_rag_query.py) asserts specific queries hit specific files (e.g. `kubernetes-troubleshooting`, `gitlab-pipeline-failure`, `prometheus-alerts`). Editing those docs, `STOP_WORDS`, scoring weights, or tokenization can silently change rankings — run the tests.

@@ -10,6 +10,7 @@ from statistics import mean
 from time import perf_counter
 
 from app.rag.ingest import read_markdown_documents
+from app.rag.hybrid import RRF_C
 from app.rag.service import RAGService
 
 
@@ -141,6 +142,7 @@ def run_evaluation(
     corpus: Path, dataset: Path, split: str = "dev", k: int = 3,
     repeats: int = 5, bm25_k1: float = 1.5, bm25_b: float = 0.75,
     candidate_multiplier: int = 5,
+    semantic_model_dir: Path | None = None,
 ) -> dict:
     if split not in {"dev", "test"}:
         raise ValueError("split must be dev or test")
@@ -165,14 +167,28 @@ def run_evaluation(
             "bm25_k1": bm25_k1, "bm25_b": bm25_b,
             "candidate_multiplier": candidate_multiplier,
             "chunk_size": 700, "chunk_overlap": 120,
+            "semantic_model_dir": str(semantic_model_dir.resolve()) if semantic_model_dir else None,
+            "semantic_query_prefix": "query: " if semantic_model_dir else None,
+            "semantic_passage_prefix": "passage: " if semantic_model_dir else None,
+            "semantic_device": "cpu" if semantic_model_dir else None,
+            "semantic_threads": 4 if semantic_model_dir else None,
+            "hybrid_rrf_c": RRF_C if semantic_model_dir else None,
+            "hybrid_weights": [1, 1] if semantic_model_dir else None,
+            "hybrid_fusion_unit": "chunk" if semantic_model_dir else None,
+            "hybrid_branch_depth": k * candidate_multiplier if semantic_model_dir else None,
         },
         "retrievers": {},
     }
-    for name in ("overlap", "bm25"):
+    names = (
+        ("overlap", "bm25", "semantic", "hybrid")
+        if semantic_model_dir else ("overlap", "bm25")
+    )
+    for name in names:
         start = perf_counter()
         service = RAGService(
             corpus, retriever=name, bm25_k1=bm25_k1, bm25_b=bm25_b,
             candidate_multiplier=candidate_multiplier,
+            semantic_model_dir=semantic_model_dir,
         )
         index_ms = (perf_counter() - start) * 1000
         rows: list[EvaluatedQuery] = []
@@ -218,11 +234,13 @@ def main() -> None:
     parser.add_argument("--bm25-k1", type=float, default=1.5)
     parser.add_argument("--bm25-b", type=float, default=0.75)
     parser.add_argument("--candidate-multiplier", type=int, default=5)
+    parser.add_argument("--semantic-model-dir", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     report = run_evaluation(
         args.corpus, args.dataset, args.split, args.k, args.repeats,
         args.bm25_k1, args.bm25_b, args.candidate_multiplier,
+        args.semantic_model_dir,
     )
     serialized = json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False)
     if args.output:

@@ -2,10 +2,12 @@ from pathlib import Path
 import re
 
 from app.rag.bm25 import BM25Index
+from app.rag.hybrid import HybridIndex
 from app.rag.chunking import split_documents_into_chunks
 from app.rag.ingest import read_markdown_documents
 from app.rag.models import QueryResult, RetrievalItem
 from app.rag.retrieval import search_chunks
+from app.rag.semantic import E5Encoder, SemanticIndex
 
 
 class RAGService:
@@ -18,8 +20,9 @@ class RAGService:
         bm25_k1: float = 1.5,
         bm25_b: float = 0.75,
         candidate_multiplier: int = 5,
+        semantic_model_dir: Path | None = None,
     ) -> None:
-        if retriever not in {"overlap", "bm25"}:
+        if retriever not in {"overlap", "bm25", "semantic", "hybrid"}:
             raise ValueError(f"Unknown retriever: {retriever}")
         if candidate_multiplier < 1:
             raise ValueError("candidate_multiplier must be positive")
@@ -30,6 +33,11 @@ class RAGService:
         self.candidate_multiplier = candidate_multiplier
         self.include_folders = include_folders or []
         self.exclude_folders = exclude_folders or []
+        self._encoder: E5Encoder | None = None
+        if retriever in {"semantic", "hybrid"}:
+            if semantic_model_dir is None:
+                raise ValueError("Semantic/hybrid retrieval requires a local semantic_model_dir")
+            self._encoder = E5Encoder(semantic_model_dir)
         self.reindex()
 
     @property
@@ -50,12 +58,14 @@ class RAGService:
         bm25_k1: float = 1.5,
         bm25_b: float = 0.75,
         candidate_multiplier: int = 5,
+        semantic_model_dir: Path | None = None,
     ) -> "RAGService":
         return cls(
             docs_dir, include_folders=include_folders,
             exclude_folders=exclude_folders, retriever=retriever,
             bm25_k1=bm25_k1, bm25_b=bm25_b,
             candidate_multiplier=candidate_multiplier,
+            semantic_model_dir=semantic_model_dir,
         )
 
     def reindex(self) -> None:
@@ -69,15 +79,29 @@ class RAGService:
             BM25Index(chunks, k1=self.bm25_k1, b=self.bm25_b)
             if self.retriever == "bm25" else None
         )
+        semantic = (
+            SemanticIndex(chunks, self._encoder)
+            if self.retriever == "semantic" and self._encoder is not None else None
+        )
+        hybrid = (
+            HybridIndex(chunks, self._encoder, k1=self.bm25_k1, b=self.bm25_b)
+            if self.retriever == "hybrid" and self._encoder is not None else None
+        )
         self._documents = documents
         self._chunks = chunks
         self._bm25 = bm25
+        self._semantic = semantic
+        self._hybrid = hybrid
 
     def retrieve(self, question: str, top_k: int = 3) -> list[RetrievalItem]:
         if top_k < 1:
             raise ValueError("top_k must be positive")
         candidate_limit = top_k * self.candidate_multiplier
-        if self._bm25 is not None:
+        if self._hybrid is not None:
+            raw_matches = self._hybrid.search(question, candidate_limit)
+        elif self._semantic is not None:
+            raw_matches = self._semantic.search(question, candidate_limit)
+        elif self._bm25 is not None:
             raw_matches = self._bm25.search(question, candidate_limit)
         else:
             raw_matches = search_chunks(self._chunks, question, candidate_limit)

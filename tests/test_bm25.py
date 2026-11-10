@@ -80,7 +80,7 @@ def test_invalid_bm25_parameters(k1: float, b: float) -> None:
 
 def test_invalid_retrieval_options(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="Unknown retriever"):
-        RAGService(tmp_path, retriever="semantic")
+        RAGService(tmp_path, retriever="unknown")
     with pytest.raises(ValueError, match="candidate_multiplier"):
         RAGService(tmp_path, candidate_multiplier=0)
     with pytest.raises(ValueError, match="top_k"):

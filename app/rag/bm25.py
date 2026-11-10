@@ -39,7 +39,7 @@ class BM25Index:
             sum(self._lengths) / len(chunks) if chunks else 0.0
         )
 
-    def search(self, question: str, top_k: int) -> list[RetrievalItem]:
+    def rank_chunks(self, question: str, top_k: int) -> list[tuple[int, float]]:
         if top_k < 1:
             raise ValueError("top_k must be positive")
         scores: dict[int, float] = {}
@@ -57,12 +57,15 @@ class BM25Index:
                     idf * frequency * (self.k1 + 1) / (frequency + normalization)
                 )
         ranked = sorted(scores, key=lambda index: (-scores[index], index))
+        return [(index, scores[index]) for index in ranked[:top_k]]
+
+    def search(self, question: str, top_k: int) -> list[RetrievalItem]:
         return [
             RetrievalItem(
                 path=self._chunks[index].path,
                 title=self._chunks[index].title,
                 snippet=_snippet(self._chunks[index].text),
-                score=scores[index],
+                score=score,
             )
-            for index in ranked[:top_k]
+            for index, score in self.rank_chunks(question, top_k)
         ]

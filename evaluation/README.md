@@ -50,7 +50,7 @@ To use a selected configuration in the API, set `RAG_RETRIEVER=bm25`,
 `RAG_BM25_K1`, `RAG_BM25_B`, and `RAG_CANDIDATE_MULTIPLIER` to the same values
 before startup. Invalid active settings raise an error instead of silently falling back.
 
-Both retrievers run for every command. Reports contain corpus/dataset SHA-256
+Both lexical retrievers run for every command; semantic and hybrid are opt-in. Reports contain corpus/dataset SHA-256
 fingerprints, all chosen settings, index-build time, overall/group/language aggregates,
 and per-query ranked paths and metrics. Keep reports together with the source revision
 and Python/machine details when comparing runs. Rankings are deterministic for the
@@ -99,4 +99,157 @@ Positive overlap is the only result-admission rule today. Near-miss false positi
 are expected and must remain visible. BM25 scores are not probabilities; returning
 top-K does not mean relevant information exists. Future semantic search will need
 its own measured no-answer policy; RRF scores will not be confidence either.
-No vector database, embeddings, RRF, or generation is added in this iteration.
+The original lexical iteration added no embeddings, vector database, RRF or
+generation. The opt-in semantic extension below adds embeddings only.
+
+## Optional semantic comparison
+
+After installing `requirements-semantic.txt` and downloading the pinned model as
+described in the [README](../README.md#optional-local-semantic-retrieval):
+
+```powershell
+$modelDir = Join-Path $env:LOCALAPPDATA "infrastructure-rag\models\multilingual-e5-small-614241f"
+.\.venv\Scripts\python.exe -m app.rag.evaluate --split dev --k 3 `
+    --semantic-model-dir $modelDir --output semantic-dev-results.json
+```
+
+This runs overlap, BM25, semantic and hybrid RRF on the identical corpus/queries. Omitting
+`--semantic-model-dir` retains the original two-retriever offline command with no
+ML dependencies. API environment settings do not implicitly enable semantic in
+the benchmark. Use test only after freezing choices; the first semantic acceptance
+check is on dev: at least one pure RU-to-EN question must have a relevant top-3 hit.
+Do not tune against the test split or modify labels to satisfy that check.
+
+Semantic uses normalized E5 embeddings, `query: ` and `passage: ` prefixes, title
+plus body, CPU/four threads, and exact dot-product ranking. Equal cosine scores
+retain chunk order. Path/tag metadata is not embedded. Inputs exceeding the
+model's token limit fail explicitly. The current character-based chunking is
+unchanged and is not guaranteed to fit every tokenizer/input language.
+
+`index_ms` for semantic includes model loading as well as reading, chunking and
+document encoding; warmed per-query latency includes query encoding. Keep this
+cold-start distinction when comparing lexical modes. Reports record the model
+directory and prefixes; retain the downloaded revision and dependency versions
+with reports. Optional unit tests use deterministic fake vectors and no network,
+while actual cross-language quality must be verified with the real local model.
+
+There is deliberately no semantic score threshold: any nonempty corpus returns
+nearest candidates. Expect no-answer false positives, not automatic abstention.
+Compare groups and individual query results, not just mean Recall. The subsequent
+hybrid extension below adds RRF; no vector DB, reranking, new chunking, or generation
+is included.
+
+### First local semantic dev measurement (2026-11-10)
+
+Pinned E5 revision: `614241f622f53c4eeff9890bdc4f31cfecc418b3`;
+K=3, five repeats, unchanged corpus/labels/chunking, BM25 k1=1.5/b=0.75,
+candidate multiplier=5. These are **dev**, not held-out test results:
+
+| Metric | Overlap | BM25 | Semantic |
+|---|---:|---:|---:|
+| Recall@3 | 0.750 | 0.833 | 1.000 |
+| Precision@3 | 0.278 | 0.306 | 0.361 |
+| MRR@3 | 0.750 | 0.833 | 0.958 |
+| MAP@3 | 0.736 | 0.833 | 0.958 |
+| Pure RU-to-EN Recall@3 | 0 | 0 | 1 |
+| No-answer false-positive rate | 0.5 | 0.5 | 1 |
+
+Both pure RU-to-EN dev questions retrieved their relevant document. However,
+`dev-restart-paraphrase` ranks its relevant document second under semantic (first
+under the lexical methods), and all four no-answer questions return candidates.
+Thus this is a measured capability, not a blanket ranking improvement or solved
+abstention. Mean warmed semantic retrieval was about 26 ms on the local CPU;
+cold index/model loading about 22 seconds. Timings are illustrative, machine/cache
+dependent, and not production performance claims. No semantic test-set tuning or
+score-threshold calibration was performed.
+
+### Validation commands
+
+```powershell
+# Unit/API tests: no downloads or model required; semantic unit tests need NumPy.
+.\.venv\Scripts\python.exe -m pytest -q
+
+# Explicit local-model acceptance: dev RU-to-EN, real API, reindex and token limit.
+$env:RAG_TEST_SEMANTIC_MODEL_DIR = $modelDir
+$env:HF_HUB_OFFLINE = "1"
+$env:TRANSFORMERS_OFFLINE = "1"
+.\.venv\Scripts\python.exe -m pytest -q tests\test_semantic_local.py
+```
+
+The semantic iteration passed 75 tests with its optional real-model check.
+The subsequent hybrid iteration passed 85 tests including real-model semantic and
+hybrid API checks (one existing TestClient dependency deprecation warning).
+Without the opt-in environment variable, the real-model cases are skipped,
+not reported as successful model checks.
+
+## Hybrid RRF dev measurement (2026-11-10)
+
+The first hybrid experiment uses **equal weights and fixed c=60**, with no parameter
+sweep. Both branches rank the same chunks, joined by corpus-list position, not
+document path or snippet. A chunk contributes `1/(60+rank)` per branch, rank starting
+at one; missing branches contribute zero. Raw BM25/cosine scores do not enter fusion.
+Ties retain corpus/chunk order. Each branch depth is `K * candidate_multiplier`;
+the fused list is capped to that depth before the shared document-path dedup.
+With K=3 and multiplier=5 this is 15 chunks per branch, not three documents.
+
+Using the same pinned E5 revision, labels, chunking and BM25 settings as above:
+
+| Metric | Overlap | BM25 | Semantic | Hybrid |
+|---|---:|---:|---:|---:|
+| Recall@3 | 0.750 | 0.833 | 1.000 | 1.000 |
+| Precision@3 | 0.278 | 0.306 | 0.361 | 0.361 |
+| MRR@3 | 0.750 | 0.833 | 0.958 | 1.000 |
+| MAP@3 | 0.736 | 0.833 | 0.958 | 1.000 |
+| Pure RU-to-EN Recall@3 | 0 | 0 | 1 | 1 |
+| No-answer false-positive rate | 0.5 | 0.5 | 1 | 1 |
+| Mean warmed retrieval, ms | 0.205 | 0.010 | 19.737 | 22.347 |
+
+Hybrid fixes the observed `dev-restart-paraphrase` top-rank regression: the relevant
+`pod-restarts.md` moves from semantic rank two to hybrid rank one. Both pure RU-to-EN
+questions retain relevant top-one hits; identifiers and short-term groups retain
+Recall/MRR=1. These are small synthetic **dev** results, not held-out acceptance
+or evidence of improvement on a personal vault. Test was not evaluated or tuned
+in this iteration. No default was switched.
+
+All four no-answer questions still return sources. An empty BM25 branch does not
+veto semantic candidates; RRF is not an abstention policy or calibrated confidence.
+The first measured semantic/hybrid index times were about 9.0s/1.3s, but evaluation
+loads semantic first: hybrid benefits from warmed imports/filesystem caches and
+still loads its own encoder. These numbers do not prove cheaper hybrid cold starts.
+
+Reproduce without a running API (PowerShell, from the project root):
+
+```powershell
+$modelDir = Join-Path $env:LOCALAPPDATA "infrastructure-rag\models\multilingual-e5-small-614241f"
+$env:HF_HUB_OFFLINE = "1"
+$env:TRANSFORMERS_OFFLINE = "1"
+.\.venv\Scripts\python.exe -m app.rag.evaluate --split dev --k 3 `
+    --semantic-model-dir $modelDir --output hybrid-dev-results.json
+
+$r = Get-Content .\hybrid-dev-results.json -Raw -Encoding UTF8 | ConvertFrom-Json
+foreach ($mode in "overlap", "bm25", "semantic", "hybrid") {
+    $x = $r.retrievers.$mode
+    [pscustomobject]@{
+        retriever = $mode
+        recall = $x.overall.ranking.recall_at_k
+        precision = $x.overall.ranking.precision_at_k
+        mrr = $x.overall.ranking.mrr_at_k
+        map = $x.overall.ranking.map_at_k
+        no_answer_fpr = $x.overall.no_answer.false_positive_rate
+        mean_ms = $x.overall.latency_ms.mean
+    }
+}
+$r.retrievers.hybrid.queries |
+    Where-Object { $_.id -eq "dev-restart-paraphrase" } |
+    ConvertTo-Json -Depth 6
+
+# Full suite, including both real-model modes; no downloads.
+$env:RAG_TEST_SEMANTIC_MODEL_DIR = $modelDir
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+Reports additionally record `hybrid_rrf_c`, equal `hybrid_weights`, chunk fusion
+unit and per-branch depth. For a manual two-terminal API check, see
+[Optional hybrid RRF retrieval](../README.md#optional-hybrid-rrf-retrieval).
+Future weight/smoothing/depth selection must be a separate dev experiment; freeze
+the configuration before evaluating held-out test.
