@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Infrastructure RAG</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="/">Infrastructure <strong>RAG</strong></a><span id="health" role="status">Connecting</span><a href="/docs" target="_blank" rel="noopener">API docs &#8599;</a></header>
+  <main>
+    <section class="workspace">
+      <div class="section-heading"><div><p class="eyebrow">RUNBOOK WORKSPACE</p><h1>Infrastructure RAG</h1></div><span class="badge">Retrieval only</span></div>
+      <form id="query-form">
+        <label for="question">Infrastructure question</label>
+        <textarea id="question" name="question" rows="4" minlength="3" required placeholder="Why does my Kubernetes pod keep restarting?"></textarea>
+        <div class="query-controls"><label class="count">Sources <input id="top-k" type="number" min="1" max="10" value="3" required></label><button id="search" type="submit">Search sources <span aria-hidden="true">&#8594;</span></button></div>
+      </form>
+      <div id="query-error" class="error" role="alert" hidden></div>
+      <div class="result-heading"><h2>Results</h2><span id="timing"></span></div>
+      <div id="empty" class="empty">No query yet</div>
+      <section id="results" hidden aria-live="polite">
+        <p id="result-runtime" class="path"></p>
+        <p id="summary"></p>
+        <div id="sources"></div>
+        <h2>Recommended actions</h2><ol id="actions"></ol>
+        <details><summary>Evidence</summary><ul id="evidence"></ul></details>
+        <details><summary>Response JSON</summary><pre id="raw"></pre></details>
+        <button id="download" class="secondary" type="button">Download JSON <span aria-hidden="true">&#8595;</span></button>
+      </section>
+    </section>
+    <aside>
+      <div class="section-heading"><h2>Index</h2><button id="refresh" class="icon secondary" type="button" title="Refresh index status" aria-label="Refresh index status">&#8635;</button></div>
+      <div class="stats"><div><strong id="documents">-</strong><span>Documents</span></div><div><strong id="chunks">-</strong><span>Chunks</span></div></div>
+      <h3>Document directory</h3><p id="docs-dir" class="path">-</p>
+      <h3>Include folders</h3><ul id="includes" class="filters"></ul>
+      <h3>Exclude folders</h3><ul id="excludes" class="filters"></ul>
+      <button id="reindex" class="secondary wide" type="button">Reindex documents <span aria-hidden="true">&#8635;</span></button>
+      <p id="index-status" role="status"></p><div id="index-error" class="error" role="alert" hidden></div>
+      <section class="configuration">
+        <h2>Runtime</h2>
+        <p id="active-runtime" class="path"></p>
+        <form id="runtime-form">
+          <fieldset id="runtime-fields" disabled>
+            <label for="retriever">Retriever</label>
+            <select id="retriever" name="retriever">
+              <option value="overlap">Token overlap</option>
+              <option value="bm25">BM25</option>
+              <option value="semantic">Semantic / E5</option>
+              <option value="hybrid">Hybrid / RRF</option>
+            </select>
+            <div class="runtime-numbers">
+              <label for="bm25-k1">BM25 k1<input id="bm25-k1" type="number" min="0.01" max="10" step="any" value="1.5" required title="Term frequency saturation; greater than 0 and at most 10"></label>
+              <label for="bm25-b">BM25 b<input id="bm25-b" type="number" min="0" max="1" step="any" value="0.75" required title="Chunk-length normalization: 0 disables it, 1 applies full normalization"></label>
+            </div>
+            <label for="candidate-multiplier">Candidate multiplier</label>
+            <input id="candidate-multiplier" type="number" min="1" max="50" step="1" value="5" required title="Chunk candidates = Sources multiplied by this value, before document deduplication; also the depth of each hybrid branch">
+            <button id="apply-runtime" class="secondary wide" type="submit">Apply settings</button>
+          </fieldset>
+        </form>
+        <p id="runtime-status" role="status"></p>
+        <div id="runtime-error" class="error" role="alert" hidden></div>
+        <dl id="config"></dl>
+      </section>
+      <section class="history-section"><div class="section-heading"><h2>Session queries</h2><button id="clear-history" type="button" class="icon secondary" aria-label="Clear session queries" title="Clear session queries">&#215;</button></div><ul id="history"></ul></section>
+    </aside>
+  </main>
+  <footer><span>Local workspace</span><span id="retriever-label">-</span><span>No LLM generation</span></footer>
+</body>
+</html>

@@ -14,6 +14,7 @@ Semantic/hybrid require separate dependencies/weights; there is no LLM or vector
 |------|-----------------|
 | Domain vocabulary and canonical terms | [GLOSSARY.md](GLOSSARY.md) |
 | HTTP API, request/response models, env config | [app/main.py](app/main.py) |
+| Local web workspace, query/reindex and runtime settings | [app/web/](app/web/), `/`, GET/POST `/ui/config` in [app/main.py](app/main.py) |
 | Query flow, dedup by path, summary, recommended actions | [app/rag/service.py](app/rag/service.py) |
 | Scoring, tokenizer, `STOP_WORDS` | [app/rag/retrieval.py](app/rag/retrieval.py) |
 | BM25 statistics and short-term/identifier tokenization | [app/rag/bm25.py](app/rag/bm25.py) |
@@ -57,6 +58,7 @@ Safe but starts a local server on `127.0.0.1:8080` (stop it afterwards):
 
 ```powershell
 pwsh -File .\scripts\dev-check.ps1 -IncludeQuery   # tests + start API + smoke + sample query, then stops API
+pwsh -File .\scripts\start-ui.ps1                 # hybrid UI + synthetic corpus; stop with Ctrl+C
 ```
 
 Manual check against the personal Obsidian vault (two terminals; keep the API terminal open):
@@ -111,6 +113,7 @@ No linter or formatter is configured in this repo. Do not invent one; say so if 
 - **`run-tests.ps1` hides test failures in its exit code.** It calls pytest as the last statement without `exit $LASTEXITCODE`, so `pwsh -File .\scripts\run-tests.ps1` exits `0` even when pytest exits non-zero. Consequence: `dev-check.ps1` keeps going after failing tests. Read the pytest summary line, or call `.\.venv\Scripts\python.exe -m pytest -q` directly and check `$LASTEXITCODE`.
 - **Corporate proxy breaks localhost calls.** `HTTP_PROXY`/`HTTPS_PROXY` are set on this machine; `Invoke-RestMethod http://127.0.0.1:<port>/healthz` without `-NoProxy` returns `502 (cannotconnect)`. Use `-NoProxy` (as the scripts do) or `curl --noproxy '*'`.
 - **The index is built at import time of `app.main`.** Document filters and retriever settings (`RAG_RETRIEVER`, `RAG_BM25_K1`, `RAG_BM25_B`, `RAG_CANDIDATE_MULTIPLIER`, `RAG_SEMANTIC_MODEL_DIR`) are read once on import. Tests set these env vars *before* `from app.main import app`; keep that order in new API tests. Editing docs while the server runs requires `POST /reindex`.
+- **Local UI runtime settings are process state.** POST `/ui/config` can replace retriever/BM25/candidate settings without changing env defaults; model/docs paths and folder filters remain fixed until restart. A lock serializes query/reindex/config; a failed replacement leaves the old service intact. Query responses expose `X-RAG-Runtime` without changing JSON fields. Use one worker and localhost only: no authentication or cross-worker state synchronization exists. Tests changing `_rag` or startup paths must restore them via monkeypatch.
 - **Vault folder filters use relative paths.** `RAG_INCLUDE_FOLDERS` and `RAG_EXCLUDE_FOLDERS` are comma-separated paths relative to `RAG_DOCS_DIR`; matching is case-insensitive and includes a folder plus its descendants. Restart the API to change environment configuration; use `POST /reindex` only to reload files with the existing configuration.
 - **The Docker image contains no documents.** [Dockerfile](Dockerfile) copies only `app/`, so the default docs dir `/app/sample_docs` does not exist and the service starts with 0 documents (`rglob` on a missing dir returns nothing, no error). Helm/manifests mount no docs either. Queries return "No relevant information" until docs are provided.
 - **`sample_docs/` are test fixtures.** [tests/test_rag_query.py](tests/test_rag_query.py) asserts specific queries hit specific files (e.g. `kubernetes-troubleshooting`, `gitlab-pipeline-failure`, `prometheus-alerts`). Editing those docs, `STOP_WORDS`, scoring weights, or tokenization can silently change rankings — run the tests.

@@ -36,3 +36,22 @@ are RRF values, not cosine/confidence; an empty lexical branch does not veto sem
 candidates. Neither semantic nor hybrid implements no-answer abstention.
 Generation remains a future stage.
 The existing Docker/Helm/raw-manifest deployment remains lexical-only.
+
+## Local Web Runtime
+
+FastAPI serves the browser workspace and static files from `app/web/`.
+GET `/ui/config` reads active settings; POST `/ui/config` validates a retriever,
+BM25 k1/b and candidate multiplier, builds a complete replacement `RAGService`,
+then swaps the reference on success. Failure preserves the previous service.
+An in-process lock serializes configuration, query, info and reindex, preventing
+mixed query/config snapshots or concurrent mutations. Health remains independent.
+The public query JSON is unchanged; `X-RAG-Runtime` attributes a response to the
+settings used under that lock. Browser score tooltips/export use that snapshot.
+
+This is a localhost-only, unauthenticated, single-worker development workspace,
+not a multi-user administration API. Changes affect all clients of that process,
+are not persisted and reset to env settings after restart. Model/docs paths and
+filters remain startup configuration; RRF settings remain fixed. Switching to
+semantic/hybrid requires the configured local model and loads a fresh encoder;
+old/new indexes can coexist temporarily during building. No external downloads
+or document transmission occur in this endpoint. Deployment defaults are unchanged.

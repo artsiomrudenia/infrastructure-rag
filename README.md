@@ -25,11 +25,100 @@ pytest -q
 uvicorn app.main:app --host 0.0.0.0 --port 8080
 ```
 
+## Local Web Workspace
+
+The API also serves an offline-capable browser interface at `/`: queries with
+top-K selection, ranked snippets and scores, recommended actions, evidence,
+downloadable JSON, in-memory session query history, index status, and reindexing.
+It uses the same service as the existing API; there is no LLM generation.
+No Node.js, CDN, or additional packages are needed. Runtime provides a retriever
+dropdown, BM25 k1/b, candidate multiplier and Apply settings. GET `/ui/config`
+shows the active configuration; POST `/ui/config` builds a replacement service
+and publishes it only after successful indexing. Existing API JSON fields are
+unchanged. Queries carry an `X-RAG-Runtime` response header; the UI binds each
+result, score tooltip and exported JSON to that snapshot, not the current form.
+Old results remain available after applying settings; rerun the query for a new
+comparison. History labels identify the original retriever, but clicking one
+only restores the question/top-K, not the server settings.
+
+Runtime values are temporary and shared by all clients of this process. Restart
+restores environment defaults; the UI does not write environment variables/files.
+Model directory, document directory and filters still require restart. Semantic
+and hybrid are disabled unless `RAG_SEMANTIC_MODEL_DIR` was configured at startup;
+runtime model loading remains local-only. A configured path does not guarantee
+valid weights: model/index errors leave the old runtime intact.
+
+Start the hybrid UI with one command from the repo root:
+
+```powershell
+.\scripts\start-ui.ps1
+```
+
+The script selects the synthetic evaluation corpus, pinned local E5 model,
+offline mode, and hybrid defaults (BM25 k1=1.5, b=0.75, candidate multiplier=5),
+then starts the API in the foreground. After startup completes, open
+http://127.0.0.1:8080/. Keep the terminal open and stop with Ctrl+C. For another
+retriever or port, use `-Retriever overlap|bm25|semantic|hybrid` and `-Port 8090`;
+for example `.\scripts\start-ui.ps1 -Retriever bm25 -Port 8090`. To select
+another local documents directory, pass `-DocsDir "C:\path\to\docs"`. Settings
+are process-local and restored in the calling PowerShell process when the server
+stops. If a matching instance already listens on the selected port, the script
+reuses it and opens the UI; if the port belongs to another or differently
+configured instance, it reports the conflict instead of starting a second server.
+Bind only to localhost:
+this workspace has no authentication; both reindex and runtime configuration
+mutate server state. Use a single Uvicorn worker for this local workspace:
+multiple workers would have independent runtime/index state.
+
+Browser acceptance check:
+
+1. Index shows eight documents/eight chunks, runtime shows `hybrid`, status is Online.
+2. Search `The process keeps dying at launch because a settings file disappeared`
+    with Sources=3. `Pod restart investigation` should rank first. Inspect snippets,
+    actions, Evidence and Response JSON; download JSON if needed.
+3. Search `Контейнер постоянно перезапускается из-за отсутствующего файла настроек`.
+    Expect the same first source. Change Sources to 1 and repeat.
+4. Reuse an earlier query from Session queries, then clear the history. It is not
+    persisted in browser storage and disappears on reload.
+5. Click Reindex documents: counts stay eight/eight, previous results are cleared.
+    Run the query again. Refresh index status should preserve the current results.
+6. Ask an unrelated question. Semantic/hybrid may still return sources: this is
+    the existing no-answer limitation, not evidence that an answer exists. Scores
+    are ranking signals, not confidence. Generic actions can also be returned.
+7. In Runtime select BM25, set k1=1.2, b=0.5 and candidate multiplier=8, then
+    Apply settings. Active changes only after success. Run the English query:
+    its Result label and JSON export must contain the applied values.
+8. Apply overlap, then semantic, then hybrid and rerun the same question. BM25
+    fields are disabled for overlap/semantic. A previous result retains its own
+    label and score explanation until the next search; numeric scores across
+    methods are not comparable. Finish with hybrid, k1=1.5, b=0.75, multiplier=5.
+
+Apply serializes with query/reindex operations. Controls are disabled while the
+index builds; semantic/hybrid reload the encoder and embeddings, so switching
+can take time and temporarily needs memory for both old and replacement services.
+The browser does not time out an apply/reindex operation; closing the page or a
+network interruption does not cancel server work. After an unconfirmed apply,
+refresh index status to read the actual active configuration before comparing.
+Invalid settings return 422; build failure returns 503 and preserves old state.
+Runtime bounds: 0 < k1 <= 10 (UI minimum 0.01), 0 <= b <= 1,
+integer multiplier 1..50. These are local-workspace safety bounds, not quality
+recommendations; BM25 parameters are inactive outside BM25/hybrid. RRF c=60 and
+weights 1:1 remain fixed; corpus, model, chunker, API defaults and CLI benchmark
+are unchanged. Use dev only for selecting settings, not the held-out test.
+
+For `brain2nd`, use the existing vault command below, additionally excluding
+`4. Projects/RAG/Raw Sessions`. The UI shows the actual source path and filters.
+No full-document browser or arbitrary file access is exposed; snippets are plain
+text. Downloaded JSON can contain private snippets: keep it outside the public repo.
+
 ## Windows PowerShell Scripts
 
 ```powershell
 # Run API (terminal 1)
 pwsh -File .\scripts\run-api.ps1
+
+# Start local web workspace with hybrid + synthetic corpus
+pwsh -File .\scripts\start-ui.ps1
 
 # Run tests
 pwsh -File .\scripts\run-tests.ps1 -Quiet

@@ -1,5 +1,6 @@
 """Opt-in real-model acceptance checks; never download weights during tests."""
 
+import json
 import os
 from pathlib import Path
 
@@ -61,3 +62,17 @@ def test_local_e5_dev_and_http(monkeypatch: pytest.MonkeyPatch, retriever: str) 
     assert payload["sources"][0]["path"] in cross_language[0].relevant_paths
     assert client.post("/reindex").status_code == 200
     assert client.post("/query", json={"question": "memory " * 600}).status_code == 422
+
+    monkeypatch.setattr(main, "_docs_dir", corpus)
+    monkeypatch.setattr(main, "_include_folders", [])
+    monkeypatch.setattr(main, "_exclude_folders", [])
+    monkeypatch.setattr(main, "_semantic_model_dir", MODEL_DIR)
+    assert client.post("/ui/config", json={"retriever": "overlap"}).status_code == 200
+    configured = client.post("/ui/config", json={"retriever": retriever})
+    assert configured.status_code == 200
+    assert configured.json()["retriever"] == retriever
+    assert configured.json()["model_configured"] is True
+    response = client.post("/query", json={"question": question, "top_k": 3})
+    assert response.status_code == 200
+    assert response.json()["sources"][0]["path"] in cross_language[0].relevant_paths
+    assert json.loads(response.headers["X-RAG-Runtime"])["retriever"] == retriever
