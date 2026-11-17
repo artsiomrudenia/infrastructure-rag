@@ -24,6 +24,31 @@ but query families (including their translations/paraphrases) are disjoint.
 The loader validates IDs, duplicate questions, paths, languages, and family leakage.
 Review labels when extending the corpus; unjudged new documents can change relevance.
 
+## Independent label audit and fresh holdout
+
+The legacy labels were independently checked against the eight source runbooks; see
+[label-audit.md](label-audit.md). Three one-token probes (`TLS`, `IP?`, `IO?`) are
+retained for historical comparability but are only topically associated, not
+well-specified tasks. Do not use their individual outcomes as answerability evidence.
+
+[queries-holdout.json](queries-holdout.json) is a separate, freshly authored set of
+16 queries (12 answerable, four unanswerable), with explicit operational intents and
+family names not present in the legacy set. Its labels were checked against runbook
+text independently of retrieval rankings. Keep it out of parameter and tokenizer
+selection. Run it once after choices are frozen; if detailed failures inform a
+retrieval change, this holdout has become development data and a new one is needed.
+
+```powershell
+# Fresh holdout: use the frozen configuration; do not tune against this report.
+.\.venv\Scripts\python.exe -m app.rag.evaluate --split holdout `
+    --dataset evaluation\queries-holdout.json --k 3 `
+    --bm25-k1 1.5 --bm25-b 0.75 --candidate-multiplier 5 `
+    --output holdout-results.json
+
+# Add this option to compare semantic and hybrid as well:
+# --semantic-model-dir $modelDir
+```
+
 ## Run and select configurations
 
 From the project root, with the existing virtual environment:

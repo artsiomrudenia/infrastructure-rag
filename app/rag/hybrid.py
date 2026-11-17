@@ -32,9 +32,6 @@ class HybridIndex:
         self._semantic = SemanticIndex(chunks, encoder)
 
     def search(self, question: str, top_k: int) -> list[RetrievalItem]:
-        # Both indexes use positions in the same chunk list, not document paths.
-        lexical = [index for index, _ in self._bm25.rank_chunks(question, top_k)]
-        semantic = [index for index, _ in self._semantic.rank_chunks(question, top_k)]
         return [
             RetrievalItem(
                 path=self._chunks[index].path,
@@ -42,5 +39,11 @@ class HybridIndex:
                 snippet=_snippet(self._chunks[index].text),
                 score=score,
             )
-            for index, score in reciprocal_rank_fusion(lexical, semantic, top_k)
+            for index, score in self.rank_chunks(question, top_k)
         ]
+
+    def rank_chunks(self, question: str, top_k: int) -> list[tuple[int, float]]:
+        # Both indexes use positions in the same chunk list, not document paths.
+        lexical = [index for index, _ in self._bm25.rank_chunks(question, top_k)]
+        semantic = [index for index, _ in self._semantic.rank_chunks(question, top_k)]
+        return reciprocal_rank_fusion(lexical, semantic, top_k)

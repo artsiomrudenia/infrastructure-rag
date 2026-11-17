@@ -89,7 +89,7 @@ def load_queries(path: Path, corpus_paths: set[str]) -> list[EvaluationQuery]:
             or len(paths) != len(set(paths))
         ):
             raise ValueError(f"Invalid relevance paths for {row['id']}")
-        if row["split"] not in {"dev", "test"} or row["language"] not in {"ru", "en"}:
+        if row["split"] not in {"dev", "test", "holdout"} or row["language"] not in {"ru", "en"}:
             raise ValueError(f"Invalid split or language for {row['id']}")
         question_key = " ".join(row["question"].casefold().split())
         if row["id"] in seen_ids or question_key in seen_questions:
@@ -104,8 +104,9 @@ def load_queries(path: Path, corpus_paths: set[str]) -> list[EvaluationQuery]:
             language=row["language"], group=row["group"],
             question=row["question"], relevant_paths=paths,
         ))
-    if {query.split for query in queries} != {"dev", "test"}:
-        raise ValueError("Dataset must contain both dev and test queries")
+    splits = {query.split for query in queries}
+    if splits not in ({"dev", "test"}, {"holdout"}):
+        raise ValueError("Dataset must contain dev and test, or a standalone holdout split")
     return queries
 
 
@@ -144,8 +145,8 @@ def run_evaluation(
     candidate_multiplier: int = 5,
     semantic_model_dir: Path | None = None,
 ) -> dict:
-    if split not in {"dev", "test"}:
-        raise ValueError("split must be dev or test")
+    if split not in {"dev", "test", "holdout"}:
+        raise ValueError("split must be dev, test, or holdout")
     if not 1 <= k <= 10 or repeats < 1:
         raise ValueError("k must be between 1 and 10; repeats must be positive")
     documents = read_markdown_documents(corpus)
@@ -228,7 +229,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", type=Path, default=root / "evaluation" / "corpus")
     parser.add_argument("--dataset", type=Path, default=root / "evaluation" / "queries.json")
-    parser.add_argument("--split", choices=("dev", "test"), default="dev")
+    parser.add_argument("--split", choices=("dev", "test", "holdout"), default="dev")
     parser.add_argument("--k", type=int, default=3)
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--bm25-k1", type=float, default=1.5)

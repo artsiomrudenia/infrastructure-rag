@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "queries": [
+    {"id":"holdout-restarts-prevlogs","split":"holdout","family":"previous-container-logs","language":"en","group":"diagnostics","question":"Which command shows logs from the previous container instance after a restart?","relevant_paths":["pod-restarts.md"]},
+    {"id":"holdout-memory-traffic","split":"holdout","family":"memory-traffic-correlation","language":"ru","group":"diagnostics","question":"Что проверить вместе с RSS и memory limit, чтобы найти причину роста потребления памяти?","relevant_paths":["pod-memory.md"]},
+    {"id":"holdout-auth-repository","split":"holdout","family":"registry-repository-access","language":"en","group":"diagnostics","question":"Which registry permission should be checked when a pull secret is present but the image request still returns 401?","relevant_paths":["registry-auth.md"]},
+    {"id":"holdout-dns-upstream","split":"holdout","family":"cluster-dns-upstream","language":"ru","group":"diagnostics","question":"Что проверить в настройках CoreDNS, если hostname registry не разрешается из namespace?","relevant_paths":["registry-dns.md"]},
+    {"id":"holdout-tls-ingress","split":"holdout","family":"ingress-certificate-reference","language":"en","group":"checks","question":"After renewing a TLS certificate, which reference should be checked for a stale secret?","relevant_paths":["tls-expiry.md"]},
+    {"id":"holdout-capacity-cleanup","split":"holdout","family":"filesystem-temporary-cleanup","language":"ru","group":"actions","question":"После ENOSPC какие временные файлы можно рассмотреть для очистки согласно retention policy?","relevant_paths":["disk-capacity.md"]},
+    {"id":"holdout-io-throughput","split":"holdout","family":"volume-throughput-analysis","language":"en","group":"checks","question":"When storage capacity is available but volume IOPS are saturated, what should be compared?","relevant_paths":["disk-io.md"]},
+    {"id":"holdout-rollback-readiness","split":"holdout","family":"post-release-readiness","language":"ru","group":"checks","question":"Какие признаки и данные о revision проверить при росте HTTP 503 после выкладки?","relevant_paths":["release-rollback.md"]},
+    {"id":"holdout-restarts-mount","split":"holdout","family":"startup-mount-validation","language":"en","group":"checks","question":"How can I verify that the startup command uses the mounted configuration path?","relevant_paths":["pod-restarts.md"]},
+    {"id":"holdout-auth-secret-rotation","split":"holdout","family":"registry-pull-secret-rotation","language":"ru","group":"actions","question":"Как применить новые credentials registry к pull secret после их ротации?","relevant_paths":["registry-auth.md"]},
+    {"id":"holdout-memory-release","split":"holdout","family":"oom-release-combination","language":"en","group":"multi_relevant","question":"After a rollout, a pod is OOMKilled and the service returns HTTP 503. Which runbooks address both symptoms?","relevant_paths":["pod-memory.md","release-rollback.md"]},
+    {"id":"holdout-auth-dns","split":"holdout","family":"registry-auth-dns-combination","language":"ru","group":"multi_relevant","question":"При загрузке образа одновременно появляются HTTP 401 и NXDOMAIN. Какие инструкции относятся к обоим симптомам?","relevant_paths":["registry-auth.md","registry-dns.md"]},
+    {"id":"holdout-etcd-backup","split":"holdout","family":"etcd-backup-recovery","language":"en","group":"no_answer","question":"How do I schedule etcd backups and verify restoration of a Kubernetes cluster?","relevant_paths":[]},
+    {"id":"holdout-hpa-tuning","split":"holdout","family":"hpa-target-tuning","language":"ru","group":"no_answer","question":"Как подобрать target CPU utilization для автомасштабирования HPA по прогнозу нагрузки?","relevant_paths":[]},
+    {"id":"holdout-cert-manager","split":"holdout","family":"cert-manager-renewal-policy","language":"en","group":"near_miss","question":"Which cert-manager policy automatically renews certificates before their expiration date?","relevant_paths":[]},
+    {"id":"holdout-capacity-forecast","split":"holdout","family":"capacity-forecasting","language":"ru","group":"near_miss","question":"Как спрогнозировать рост файловой системы по сезонному потреблению, чтобы заранее заказать диск?","relevant_paths":[]}
+  ]
+}

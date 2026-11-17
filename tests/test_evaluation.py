@@ -9,6 +9,7 @@ from app.rag.evaluate import load_queries, ranking_metrics, run_evaluation
 ROOT = Path(__file__).resolve().parents[1]
 CORPUS = ROOT / "evaluation" / "corpus"
 DATASET = ROOT / "evaluation" / "queries.json"
+HOLDOUT_DATASET = ROOT / "evaluation" / "queries-holdout.json"
 
 
 def test_metrics_exact_values() -> None:
@@ -89,6 +90,44 @@ def test_test_split_is_explicit_and_disjoint() -> None:
     report = run_evaluation(CORPUS, DATASET, split="test", repeats=1)
     for retriever in report["retrievers"].values():
         assert all(row["id"].startswith("test-") for row in retriever["queries"])
+
+
+def test_holdout_is_standalone_and_disjoint_from_existing_families() -> None:
+    paths = {path.name for path in CORPUS.glob("*.md")}
+    historical = load_queries(DATASET, paths)
+    holdout = load_queries(HOLDOUT_DATASET, paths)
+    historical_families = {query.family for query in historical}
+    assert {query.split for query in holdout} == {"holdout"}
+    assert historical_families.isdisjoint({query.family for query in holdout})
+    assert {query.id for query in historical}.isdisjoint({query.id for query in holdout})
+    assert {
+        " ".join(query.question.casefold().split()) for query in historical
+    }.isdisjoint({" ".join(query.question.casefold().split()) for query in holdout})
+    assert len(holdout) == 16
+    assert sum(bool(query.relevant_paths) for query in holdout) == 12
+
+
+def test_standalone_holdout_split_runs_on_smoke_dataset(tmp_path: Path) -> None:
+    dataset = tmp_path / "smoke-holdout.json"
+    dataset.write_text(json.dumps({
+        "version": 1,
+        "queries": [{
+            "id": "smoke-holdout-startup-config",
+            "split": "holdout",
+            "family": "smoke-startup-config",
+            "language": "en",
+            "group": "smoke",
+            "question": "Which check compares the mounted config path with the startup command?",
+            "relevant_paths": ["pod-restarts.md"],
+        }],
+    }), encoding="utf-8")
+    report = run_evaluation(CORPUS, dataset, split="holdout", repeats=1)
+    assert report["split"] == "holdout"
+    for retriever in report["retrievers"].values():
+        assert retriever["overall"]["query_count"] == 1
+        assert [row["id"] for row in retriever["queries"]] == [
+            "smoke-holdout-startup-config"
+        ]
 
 
 @pytest.mark.parametrize("mutation", [

@@ -5,8 +5,8 @@ from app.rag.bm25 import BM25Index
 from app.rag.hybrid import HybridIndex
 from app.rag.chunking import split_documents_into_chunks
 from app.rag.ingest import read_markdown_documents
-from app.rag.models import QueryResult, RetrievalItem
-from app.rag.retrieval import search_chunks
+from app.rag.models import ContextResult, ContextSource, QueryResult, RetrievalItem
+from app.rag.retrieval import rank_chunks as rank_overlap_chunks, search_chunks
 from app.rag.semantic import E5Encoder, SemanticIndex
 
 
@@ -106,6 +106,74 @@ class RAGService:
         else:
             raw_matches = search_chunks(self._chunks, question, candidate_limit)
         return self._deduplicate_by_path(raw_matches, top_k)
+
+    def build_context(
+        self, question: str, max_chunks: int = 6, max_chars: int = 6000
+    ) -> ContextResult:
+        if max_chunks < 1:
+            raise ValueError("max_chunks must be positive")
+        if max_chars < 32:
+            raise ValueError("max_chars must be at least 32")
+
+        ranked = self._rank_context_chunks(
+            question, max_chunks * self.candidate_multiplier
+        )
+        blocks: list[str] = []
+        sources: list[ContextSource] = []
+        context_chars = 0
+        truncated = False
+
+        for index, score in ranked:
+            if len(sources) >= max_chunks:
+                truncated = True
+                break
+
+            chunk = self._chunks[index]
+            source_id = f"S{len(sources) + 1}"
+            separator = "\n\n" if blocks else ""
+            header = f"[{source_id}]\n"
+            available = max_chars - context_chars - len(separator) - len(header)
+            if available <= 0:
+                truncated = True
+                break
+
+            text = chunk.text
+            clipped = len(text) > available
+            if clipped:
+                text = text[:available].rstrip()
+            if not text:
+                truncated = True
+                break
+
+            block = f"{header}{text}"
+            blocks.append(f"{separator}{block}")
+            context_chars += len(separator) + len(block)
+            sources.append(ContextSource(
+                source_id=source_id,
+                path=chunk.path,
+                title=chunk.title,
+                section=chunk.section,
+                chunk_id=chunk.chunk_id,
+                score=score,
+            ))
+            if clipped:
+                truncated = True
+                break
+
+        if len(ranked) > len(sources):
+            truncated = True
+        return ContextResult(
+            context="".join(blocks), sources=sources, truncated=truncated,
+        )
+
+    def _rank_context_chunks(self, question: str, limit: int) -> list[tuple[int, float]]:
+        if self._hybrid is not None:
+            return self._hybrid.rank_chunks(question, limit)
+        if self._semantic is not None:
+            return self._semantic.rank_chunks(question, limit)
+        if self._bm25 is not None:
+            return self._bm25.rank_chunks(question, limit)
+        return rank_overlap_chunks(self._chunks, question, limit)
 
     def query(self, question: str, top_k: int = 3) -> QueryResult:
         matches = self.retrieve(question, top_k)

@@ -27,10 +27,38 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 
 ## Local Web Workspace
 
+### Bounded Context Preview
+
+`POST /context` assembles ranked chunks without calling an LLM. It may return
+multiple chunks from the same document. Each block is marked `[S1]`, `[S2]`, etc.;
+the response maps those response-local IDs to document path, title, Markdown section,
+chunk ID, and retrieval score. `max_chunks` limits the number of blocks and
+`max_chars` is a hard limit on the assembled context string; `truncated` indicates
+that ranked content was clipped or omitted. This is a character limit, not a token
+budget. Exact token budgeting must use the tokenizer for the generation model once
+one is selected. `/query` remains unchanged.
+
+```powershell
+$context = Invoke-RestMethod -NoProxy -Method Post `
+    -Uri "http://127.0.0.1:8080/context" `
+    -ContentType "application/json" `
+    -Body '{"question":"How to troubleshoot CrashLoopBackOff?","max_chunks":6,"max_chars":6000}'
+$context.sources | Select-Object source_id, path, title, section, chunk_id, score
+$context.context
+$context.truncated
+```
+
 The API also serves an offline-capable browser interface at `/`: queries with
 top-K selection, ranked snippets and scores, recommended actions, evidence,
 downloadable JSON, in-memory session query history, index status, and reindexing.
 It uses the same service as the existing API; there is no LLM generation.
+Result titles and paths open the indexed Markdown file through `obsidian://open`
+using the absolute path formed from `docs_dir` and the returned relative path.
+On Windows, Obsidian's URI protocol must be registered (launch Obsidian once).
+The browser cannot directly execute a Start Menu `.lnk`; Windows routes the URI to
+the registered Obsidian executable. UI Response JSON and downloads preserve the
+relative `path` and add an `obsidian_url` field for each source. The raw `/query`
+API response remains unchanged.
 No Node.js, CDN, or additional packages are needed. Runtime provides a retriever
 dropdown, BM25 k1/b, candidate multiplier and Apply settings. GET `/ui/config`
 shows the active configuration; POST `/ui/config` builds a replacement service

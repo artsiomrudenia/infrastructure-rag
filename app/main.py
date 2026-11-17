@@ -32,6 +32,29 @@ class QueryResponse(BaseModel):
     sources: list[SourceItem]
 
 
+class ContextRequest(BaseModel):
+    question: str = Field(min_length=3)
+    max_chunks: int = Field(default=6, ge=1, le=30)
+    max_chars: int = Field(default=6000, ge=32, le=20000)
+
+
+class ContextSourceItem(BaseModel):
+    source_id: str
+    path: str
+    title: str
+    section: str | None
+    chunk_id: int
+    score: float
+
+
+class ContextResponse(BaseModel):
+    context: str
+    sources: list[ContextSourceItem]
+    truncated: bool
+    context_chars: int
+    max_chars: int
+
+
 app = FastAPI(title="infrastructure-rag", version="0.2.0")
 _web_dir = Path(__file__).parent / "web"
 app.mount("/static", StaticFiles(directory=_web_dir), name="static")
@@ -172,6 +195,35 @@ def query(payload: QueryRequest, response: Response) -> QueryResponse:
         evidence=result.evidence,
         recommended_actions=result.recommended_actions,
         sources=sources,
+    )
+
+
+@app.post("/context", response_model=ContextResponse)
+def build_context(payload: ContextRequest, response: Response) -> ContextResponse:
+    try:
+        with _runtime_lock:
+            result = _rag.build_context(
+                payload.question, payload.max_chunks, payload.max_chars,
+            )
+            response.headers["X-RAG-Runtime"] = json.dumps(_runtime_config())
+    except SemanticInputTooLong as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    return ContextResponse(
+        context=result.context,
+        sources=[
+            ContextSourceItem(
+                source_id=source.source_id,
+                path=source.path,
+                title=source.title,
+                section=source.section,
+                chunk_id=source.chunk_id,
+                score=source.score,
+            )
+            for source in result.sources
+        ],
+        truncated=result.truncated,
+        context_chars=len(result.context),
+        max_chars=payload.max_chars,
     )
 
 

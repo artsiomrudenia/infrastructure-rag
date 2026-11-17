@@ -36,24 +36,29 @@ STOP_WORDS = {
 
 
 def search_chunks(chunks: list[Chunk], question: str, top_k: int) -> list[RetrievalItem]:
+    return [
+        RetrievalItem(
+            path=chunks[index].path,
+            title=chunks[index].title,
+            snippet=_snippet(chunks[index].text),
+            score=score,
+        )
+        for index, score in rank_chunks(chunks, question, top_k)
+    ]
+
+
+def rank_chunks(chunks: list[Chunk], question: str, top_k: int) -> list[tuple[int, float]]:
     query_tokens = _tokenize(question)
     query_counts = Counter(query_tokens)
-    results: list[RetrievalItem] = []
+    results: list[tuple[int, float]] = []
 
-    for chunk in chunks:
+    for index, chunk in enumerate(chunks):
         score = _score_chunk(chunk, query_counts)
         if score <= 0:
             continue
-        results.append(
-            RetrievalItem(
-                path=chunk.path,
-                title=chunk.title,
-                snippet=_snippet(chunk.text),
-                score=score,
-            )
-        )
+        results.append((index, score))
 
-    results.sort(key=lambda item: item.score, reverse=True)
+    results.sort(key=lambda item: (-item[1], item[0]))
     return results[:top_k]
 
 

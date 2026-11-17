@@ -5,6 +5,7 @@ let history = [];
 let querying = false;
 let reindexing = false;
 let runtimeConfig = null;
+let docsDirectory = "";
 let applying = false;
 let refreshing = false;
 
@@ -67,6 +68,26 @@ function list(id, values) {
   element(id).replaceChildren(...values.map((value) => textNode("li", value)));
 }
 
+function obsidianUri(sourcePath) {
+  if (!docsDirectory || sourcePath.split(/[\\/]+/).includes("..")) return null;
+  const separator = docsDirectory.includes("\\") ? "\\" : "/";
+  const root = docsDirectory.replace(/[\\/]+$/, "");
+  const relativePath = sourcePath.replace(/[\\/]+/g, separator);
+  const absolutePath = `${root}${separator}${relativePath}`;
+  const encodedPath = encodeURIComponent(absolutePath).replace(/\//g, "%2F");
+  return `obsidian://open?path=${encodedPath}`;
+}
+
+function sourceLink(source, label, className) {
+  const uri = obsidianUri(source.path);
+  if (!uri) return textNode("span", label, className);
+  const link = textNode("a", label, className);
+  link.href = uri;
+  link.title = "Open in Obsidian";
+  link.setAttribute("aria-label", `Open ${source.path} in Obsidian`);
+  return link;
+}
+
 function runtimeLabel(config) {
   if (!config) return "Runtime unavailable for this response";
   const parts = [config.retriever, `candidates x${config.candidate_multiplier}`];
@@ -105,6 +126,7 @@ async function refresh() {
   try {
     const [health, info, config] = await Promise.all([request("/healthz"), request("/info"), request("/ui/config")]);
     renderRuntime(config);
+    docsDirectory = info.docs_dir;
     element("health").textContent = health.status === "ok" ? "Online" : health.status;
     element("health").className = health.status === "ok" ? "online" : "";
     element("documents").textContent = info.indexed_documents;
@@ -166,20 +188,31 @@ element("query-form").addEventListener("submit", async (event) => {
   const started = performance.now();
   try {
     const { payload: response, runtime } = await request("/query", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }, true);
-    lastResponse = { request: body, runtime, response };
+    const responseWithLinks = {
+      ...response,
+      sources: response.sources.map((source) => ({
+        ...source,
+        obsidian_url: obsidianUri(source.path),
+      })),
+    };
+    lastResponse = { request: body, runtime, response: responseWithLinks };
     element("result-runtime").textContent = `Result: ${runtimeLabel(runtime)}`;
     element("timing").textContent = `${response.sources.length} sources / ${Math.round(performance.now() - started)} ms HTTP`;
     element("summary").textContent = response.summary;
     element("sources").replaceChildren(...response.sources.map((source, index) => {
       const article = textNode("article", "", "source");
       const heading = textNode("div", "", "source-head");
-      heading.append(textNode("h3", `${index + 1}. ${source.title}`), scoreBadge(source.score, index, runtime));
-      article.append(heading, textNode("p", source.path, "path"), textNode("p", source.snippet));
+      const title = textNode("h3", "");
+      title.append(sourceLink(source, `${index + 1}. ${source.title}`));
+      heading.append(title, scoreBadge(source.score, index, runtime));
+      const path = textNode("p", "", "path");
+      path.append(sourceLink(source, source.path, "path-link"));
+      article.append(heading, path, textNode("p", source.snippet));
       return article;
     }));
     list("actions", response.recommended_actions);
     list("evidence", response.evidence);
-    element("raw").textContent = JSON.stringify(response, null, 2);
+    element("raw").textContent = JSON.stringify(responseWithLinks, null, 2);
     element("empty").hidden = true;
     element("results").hidden = false;
     history = [{ ...body, runtime }, ...history].slice(0, 8);
